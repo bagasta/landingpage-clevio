@@ -8,36 +8,76 @@ const poppins = Poppins({
   weight: ['400', '500', '600'],
 });
 
+type Language = 'id' | 'en';
+
 const offeringCards = [
   {
     logo: '/logo-innovator-camp.png',
-    alt: 'Innovator Camp Logo',
-    description:
-      'Program yang menumbuhkan kreativitas anak dan remaja melalui teknologi digital.',
+    alt: {
+      id: 'Logo Innovator Camp',
+      en: 'Innovator Camp Logo',
+    },
+    description: {
+      id: 'Program yang menumbuhkan kreativitas dan kepemimpinan inovator muda melalui eksperimen teknologi.',
+      en: 'A program that grows young innovators by blending creativity, leadership, and hands-on technology experiments.',
+    },
     href: '/innovator-camp',
     buttonGradient: 'from-[#1c2974] to-[#1c2974] hover:from-black hover:to-black',
   },
-   {
+  {
     logo: '/logo-innovator-pro.png',
-    alt: 'Innovator Pro Logo',
-    description:
-      'Program pengembangan profesional untuk berinovasi dan bekerja cerdas dengan AI.',
+    alt: {
+      id: 'Logo Innovator Pro',
+      en: 'Innovator Pro Logo',
+    },
+    description: {
+      id: 'Pendampingan profesional untuk merancang inovasi berkelanjutan dan mengoptimalkan kerja dengan AI.',
+      en: 'Professional guidance to design sustainable innovations while optimising work with AI.',
+    },
     href: '/innovator-pro',
     buttonGradient: 'from-[#1c2974] to-[#1c2974] hover:from-black hover:to-black',
   },
   {
     logo: '/logo-ai-assistants.png',
-    alt: 'AI Assistants Logo',
-    description:
-      'Platform untuk menciptakan asisten digital yang membantu manusia berinovasi dan berkarya.',
+    alt: {
+      id: 'Logo Clevio AI Assistants',
+      en: 'Clevio AI Assistants Logo',
+    },
+    description: {
+      id: 'Platform asisten AI yang berpihak pada manusia untuk mempercepat produktivitas tanpa kehilangan empati.',
+      en: 'A human-first AI assistant platform that accelerates productivity without losing empathy.',
+    },
     href: '/ai-assistants',
     buttonGradient: 'from-[#1c2974] to-[#1c2974] hover:from-black hover:to-black',
   },
- 
 ] as const;
+
+const copy: Record<Language, {
+  principles: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  exploreLabel: string;
+  exploreLink: string;
+}> = {
+  id: {
+    principles: 'Clever · Leverage · Human-Centric · Great Good',
+    heroTitle: 'Memberdayakan Manusia Lewat Inovasi Cerdas',
+    heroSubtitle: 'Clevio Group menggerakkan inovasi cerdas dan berpusat pada manusia untuk menghadirkan solusi berarti bagi masa depan.',
+    exploreLabel: 'Apa itu Clevio?',
+    exploreLink: 'Mari jelajahi sekarang',
+  },
+  en: {
+    principles: 'Clever · Leverage · Human-Centric · Great Good',
+    heroTitle: 'Empowering People with Clever Innovation',
+    heroSubtitle: 'Clevio Group drives clever, human-centered innovation to deliver meaningful solutions for the future.',
+    exploreLabel: 'What is Clevio?',
+    exploreLink: "Let's explore now",
+  },
+};
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  const [language, setLanguage] = useState<Language>('id');
 
   useEffect(() => {
     setMounted(true);
@@ -45,6 +85,28 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen overflow-hidden font-sans bg-gradient-to-br from-white via-[#f6f7fb] to-[#e9ecf5]">
+      <div className="absolute top-6 right-6 z-30">
+        <div className="flex overflow-hidden rounded-full border border-black/10 bg-white/80 shadow-[0_8px_20px_-12px_rgba(28,41,116,0.45)] backdrop-blur-sm">
+          {(['id', 'en'] as Language[]).map((lang) => {
+            const isActive = language === lang;
+            return (
+              <button
+                key={lang}
+                type="button"
+                onClick={() => setLanguage(lang)}
+                aria-pressed={isActive}
+                className={`px-4 py-2 text-xs font-medium uppercase tracking-widest transition ${
+                  isActive
+                    ? 'bg-[#1c2974] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
+                    : 'text-black/60 hover:text-black hover:bg-black/[0.04]'
+                }`}
+              >
+                {lang === 'id' ? 'Bahasa' : 'English'}
+              </button>
+            );
+          })}
+        </div>
+      </div>
       {/* Elegant Textured Background */}
       <div className="pointer-events-none absolute inset-0">
         {/* Subtle noise texture overlay */}
@@ -162,17 +224,17 @@ export default function Home() {
               <span
                 className={`${poppins.className} text-xs uppercase tracking-[0.65em] text-[#1c2974] md:text-sm`}
               >
-                Clever . Leverage . Human-Centric . Great Good
+                {copy[language].principles}
               </span>
               <h1
                 className={`${poppins.className} mt-6 text-3xl font-semibold tracking-tight text-black sm:text-4xl md:text-5xl`}
               >
-                Empowering Humanity Through Clever Innovation
+                {copy[language].heroTitle}
               </h1>
               <p
                 className={`${poppins.className} mt-6 max-w-3xl text-base text-black/70 sm:text-lg`}
               >
-                Clevio Group menggerakkan inovasi cerdas dan manusiawi untuk kebaikan bersama.
+                {copy[language].heroSubtitle}
               </p>
             </div>
           </div>
@@ -191,16 +253,20 @@ export default function Home() {
             >
               <div className="relative mx-auto mb-8 flex h-28 w-28 items-center justify-center rounded-full border border-black/5 bg-gradient-to-br from-white/70 via-white/40 to-white/10 shadow-[0_20px_45px_-30px_rgba(28,41,116,0.6)] backdrop-blur-xl transition duration-300 group-hover:scale-105">
                 <div className="absolute inset-1 rounded-full bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-80" />
-                <img src={card.logo} alt={card.alt} className="relative z-10 h-14 w-auto sm:h-16" />
+                <img
+                  src={card.logo}
+                  alt={card.alt[language]}
+                  className="relative z-10 h-16 w-auto max-w-[6.5rem] object-contain sm:h-20 sm:max-w-[8rem]"
+                />
               </div>
               <p className={`${poppins.className} flex-1 text-sm leading-relaxed text-black/70 sm:text-base`}>
-                {card.description}
+                {card.description[language]}
               </p>
               <a
                 href={card.href}
                 className={`${poppins.className} mt-8 inline-flex items-center justify-center rounded-full bg-gradient-to-r px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_-12px_rgba(28,41,116,0.55)] transition duration-200 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 active:scale-95 ${card.buttonGradient}`}
               >
-                Explore
+                {language === 'id' ? 'Jelajahi' : 'Explore'}
               </a>
             </div>
           ))}
@@ -212,12 +278,12 @@ export default function Home() {
           }`}
         >
           <p className={`${poppins.className} text-sm text-black/70 sm:text-base`}>
-            What is Clevio?{' '}
+            {copy[language].exploreLabel}{' '}
             <a
               href="#learn-more"
               className="relative font-semibold text-[#1c2974] transition hover:text-black"
             >
-              Let&apos;s explore now
+              {copy[language].exploreLink}
               <span className="absolute -bottom-1 left-0 h-px w-full bg-gradient-to-r from-transparent via-[#1c2974]/40 to-transparent opacity-60" />
             </a>
           </p>
