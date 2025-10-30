@@ -1,13 +1,164 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+type Point = { x: number; y: number };
+
+type BranchGeometry = {
+  path: string;
+  end: Point;
+};
+
+type ConnectorGeometry = {
+  width: number;
+  height: number;
+  start: Point;
+  junction: Point;
+  trunk: string;
+  branches: BranchGeometry[];
+};
+
+const offeringCards = [
+  {
+    logo: '/logo-innovator-camp.png',
+    alt: 'Innovator Camp Logo',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    href: '/innovator-camp',
+    buttonGradient: 'from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600',
+  },
+  {
+    logo: '/logo-ai-assistants.png',
+    alt: 'AI Assistants Logo',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    href: '/ai-assistants',
+    buttonGradient: 'from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700',
+  },
+  {
+    logo: '/logo-innovator-pro.png',
+    alt: 'Innovator Pro Logo',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    href: '/innovator-pro',
+    buttonGradient: 'from-lime-400 to-emerald-600 hover:from-lime-500 hover:to-emerald-700',
+  },
+] as const;
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mainNodeRef = useRef<HTMLDivElement>(null);
+  const childRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const geometryUpdateRef = useRef<() => void>();
+  const [geometry, setGeometry] = useState<ConnectorGeometry | null>(null);
+
+  const setChildRef = useCallback(
+    (index: number) => (node: HTMLDivElement | null) => {
+      childRefs.current[index] = node;
+      if (node) {
+        requestAnimationFrame(() => {
+          geometryUpdateRef.current?.();
+        });
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const updateGeometry = () => {
+      const container = containerRef.current;
+      const mainNode = mainNodeRef.current;
+      const children = childRefs.current.filter((node): node is HTMLDivElement => Boolean(node));
+
+      if (!container || !mainNode || children.length === 0) {
+        return;
+      }
+
+      const containerRect = container.getBoundingClientRect();
+      const mainRect = mainNode.getBoundingClientRect();
+
+      const start: Point = {
+        x: mainRect.left + mainRect.width / 2 - containerRect.left,
+        y: mainRect.bottom - containerRect.top,
+      };
+
+      const childPoints = children.map((child) => {
+        const rect = child.getBoundingClientRect();
+        return {
+          x: rect.left + rect.width / 2 - containerRect.left,
+          y: rect.top - containerRect.top,
+        };
+      });
+
+      if (!childPoints.length) {
+        return;
+      }
+
+      const minChildY = Math.min(...childPoints.map((point) => point.y));
+      const junctionY = Math.max(start.y + 24, minChildY - 48);
+      const junction: Point = { x: start.x, y: junctionY };
+
+      const trunk = `M ${start.x} ${start.y} L ${junction.x} ${junction.y}`;
+
+      const branches: BranchGeometry[] = childPoints.map((point) => {
+        const controlX = (junction.x + point.x) / 2;
+        const controlY = (junction.y + point.y) / 2;
+        return {
+          path: `M ${junction.x} ${junction.y} Q ${controlX} ${controlY} ${point.x} ${point.y}`,
+          end: point,
+        };
+      });
+
+      setGeometry({
+        width: containerRect.width,
+        height: containerRect.height,
+        start,
+        junction,
+        trunk,
+        branches,
+      });
+    };
+
+    geometryUpdateRef.current = updateGeometry;
+    updateGeometry();
+
+    const handleResize = () => {
+      requestAnimationFrame(updateGeometry);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        requestAnimationFrame(updateGeometry);
+      });
+
+      if (containerRef.current) {
+        resizeObserver.observe(containerRef.current);
+      }
+      if (mainNodeRef.current) {
+        resizeObserver.observe(mainNodeRef.current);
+      }
+      childRefs.current.forEach((node) => {
+        if (node) {
+          resizeObserver?.observe(node);
+        }
+      });
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      resizeObserver?.disconnect();
+    };
+  }, [mounted]);
 
   return (
     <main className="min-h-screen bg-white overflow-hidden relative font-sans">
@@ -24,7 +175,7 @@ export default function Home() {
 
         {/* Fine mesh grid pattern */}
         <div
-          className="absolute inset-0 opacity-[0.02]"
+          className="absolute inset-0 opacity-[0.08]"
           style={{
             backgroundImage: `
               linear-gradient(0deg,rgb(60, 82, 124) 1px, transparent 1px),
@@ -86,606 +237,99 @@ export default function Home() {
         </div>
       )}
 
-      {/* Connection Lines - BEHIND ALL NODES with perfect alignment */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-13">
-        {/* Desktop lines - refined for consistent theming */}
-        <svg className="absolute w-full h-full hidden lg:block" style={{ width: '1400px', height: '680px', left: '-700px', top: '-505px' }}>
-          {/* Vertical trunk to connect the main node */}
-          <path
-            id="desktopLineTrunk"
-            d="M 700 170 L 700 240"
-            stroke="#000000"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            className="drop-shadow-lg"
-            strokeOpacity="0.85"
+      <div
+        ref={containerRef}
+        className="relative z-20 flex min-h-screen flex-col items-center justify-center px-6 py-24 md:px-10"
+      >
+        {geometry ? (
+          <svg
+            className="pointer-events-none absolute inset-0 hidden md:block z-0"
+            width={geometry.width}
+            height={geometry.height}
+            viewBox={`0 0 ${geometry.width} ${geometry.height}`}
+            preserveAspectRatio="none"
           >
-            <animate
-              attributeName="stroke-opacity"
-              values="0.75;0.95;0.75"
-              dur="3.5s"
-              repeatCount="indefinite"
+            <path
+              d={geometry.trunk}
+              stroke="#22367b"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+              opacity="0.85"
             />
-          </path>
-          
-          {/* Left connection line */}
-          <path
-            id="desktopLineLeft"
-            d="M 700 240 Q 690 360, 220 560"
-            stroke="#22367b"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            className="drop-shadow-lg"
-            strokeOpacity="0.85"
-          >
-            <animate
-              attributeName="stroke-opacity"
-              values="0.75;0.95;0.75"
-              dur="3.5s"
-              repeatCount="indefinite"
-            />
-          </path>
-          <circle
-            cx="220"
-            cy="560"
-            r="6"
-            fill="#22367b"
-            opacity="0.85"
-            className="drop-shadow-lg"
-          >
-            <animate
-              attributeName="r"
-              values="6;8;6"
-              dur="2s"
-              repeatCount="indefinite"
-            />
-          </circle>
-          <circle r="4" fill="#22367b" opacity="0.7">
-            <animateMotion dur="3.5s" repeatCount="indefinite">
-              <mpath xlinkHref="#desktopLineLeft" />
-            </animateMotion>
-          </circle>
-          
-          {/* Center connection line */}
-          <path
-            id="desktopLineCenter"
-            d="M 700 240 Q 690 360, 700 560"
-            stroke="#22367b"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            className="drop-shadow-lg"
-            strokeOpacity="0.85"
-          >
-            <animate
-              attributeName="stroke-opacity"
-              values="0.75;0.95;0.75"
-              dur="3.5s"
-              begin="0.2s"
-              repeatCount="indefinite"
-            />
-          </path>
-          <circle
-            cx="700"
-            cy="560"
-            r="6"
-            fill="#22367b"
-            opacity="0.85"
-            className="drop-shadow-lg"
-          >
-            <animate
-              attributeName="r"
-              values="6;8;6"
-              dur="2s"
-              begin="0.2s"
-              repeatCount="indefinite"
-            />
-          </circle>
-          <circle r="4" fill="#22367b" opacity="0.7">
-            <animateMotion dur="3.5s" begin="0.2s" repeatCount="indefinite">
-              <mpath xlinkHref="#desktopLineCenter" />
-            </animateMotion>
-          </circle>
-          
-          {/* Right connection line */}
-          <path
-            id="desktopLineRight"
-            d="M 700 240 Q 690 360, 1195 560"
-            stroke="#22367b"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            className="drop-shadow-lg"
-            strokeOpacity="0.85"
-          >
-            <animate
-              attributeName="stroke-opacity"
-              values="0.75;0.95;0.75"
-              dur="3.5s"
-              begin="0.4s"
-              repeatCount="indefinite"
-            />
-          </path>
-          <circle
-            cx="1200"
-            cy="560"
-            r="6"
-            fill="#22367b"
-            opacity="0.85"
-            className="drop-shadow-lg"
-          >
-            <animate
-              attributeName="r"
-              values="6;8;6"
-              dur="2s"
-              begin="0.4s"
-              repeatCount="indefinite"
-            />
-          </circle>
-          <circle r="4" fill="#22367b" opacity="0.7">
-            <animateMotion dur="3.5s" begin="0.4s" repeatCount="indefinite">
-              <mpath xlinkHref="#desktopLineRight" />
-            </animateMotion>
-          </circle>
-          <circle cx="700" cy="240" r="5" fill="#22367b" opacity="0.6" className="drop-shadow">
-            <animate
-              attributeName="opacity"
-              values="0.5;0.8;0.5"
-              dur="2.8s"
-              repeatCount="indefinite"
-            />
-          </circle>
-        </svg>
+            {geometry.branches.map((branch, index) => (
+              <path
+                key={`branch-${index}`}
+                d={branch.path}
+                stroke="#22367b"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+                opacity="0.85"
+              />
+            ))}
+            <circle cx={geometry.start.x} cy={geometry.start.y} r="5" fill="#22367b" opacity="0.6" />
+            <circle cx={geometry.junction.x} cy={geometry.junction.y} r="4" fill="#22367b" opacity="0.4" />
+            {geometry.branches.map((branch, index) => (
+              <circle key={`branch-end-${index}`} cx={branch.end.x} cy={branch.end.y} r="6" fill="#22367b" opacity="0.85" />
+            ))}
+          </svg>
+        ) : null}
 
-        {/* Tablet lines - refined for consistent theming */}
-        <svg className="absolute w-full h-full hidden md:block lg:hidden" style={{ width: '900px', height: '680px', left: '-450px', top: '-340px' }}>
-          {/* Vertical trunk */}
-          <path
-            id="tabletLineTrunk"
-            d="M 450 160 L 450 230"
-            stroke="#22367b"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            className="drop-shadow-md"
-            strokeOpacity="0.85"
-          >
-            <animate
-              attributeName="stroke-opacity"
-              values="0.75;0.95;0.75"
-              dur="3s"
-              repeatCount="indefinite"
+        <div
+          ref={mainNodeRef}
+          className={`relative w-full max-w-2xl border-slate-100 bg-white px-10 py-12 text-center shadow-xl transition-all duration-700 ${
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+        >
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-50/60 via-white to-purple-50/40" />
+          <div className="relative flex flex-col items-center gap-6">
+            <img
+              src="/logo-clevio-main.png"
+              alt="Clevio Logo"
+              className="h-50 w-auto md:h-50"
             />
-          </path>
-
-          {/* Left connection line */}
-          <path
-            id="tabletLineLeft"
-            d="M 450 230 Q 340 340, 160 520"
-            stroke="#22367b"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            className="drop-shadow-md"
-            strokeOpacity="0.85"
-          >
-            <animate
-              attributeName="stroke-opacity"
-              values="0.75;0.95;0.75"
-              dur="3s"
-              repeatCount="indefinite"
-            />
-          </path>
-          <circle
-            cx="160"
-            cy="520"
-            r="5"
-            fill="#22367b"
-            opacity="0.85"
-            className="drop-shadow-md"
-          >
-            <animate
-              attributeName="r"
-              values="5;7;5"
-              dur="1.9s"
-              repeatCount="indefinite"
-            />
-          </circle>
-          <circle r="3.5" fill="#22367b" opacity="0.7">
-            <animateMotion dur="3s" repeatCount="indefinite">
-              <mpath xlinkHref="#tabletLineLeft" />
-            </animateMotion>
-          </circle>
-          
-          {/* Center connection line */}
-          <path
-            id="tabletLineCenter"
-            d="M 450 230 Q 440 340, 450 520"
-            stroke="#22367b"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            className="drop-shadow-md"
-            strokeOpacity="0.85"
-          >
-            <animate
-              attributeName="stroke-opacity"
-              values="0.75;0.95;0.75"
-              dur="3s"
-              begin="0.2s"
-              repeatCount="indefinite"
-            />
-          </path>
-          <circle
-            cx="450"
-            cy="520"
-            r="5"
-            fill="#22367b"
-            opacity="0.85"
-            className="drop-shadow-md"
-          >
-            <animate
-              attributeName="r"
-              values="5;7;5"
-              dur="1.9s"
-              begin="0.2s"
-              repeatCount="indefinite"
-            />
-          </circle>
-          <circle r="3.5" fill="#22367b" opacity="0.7">
-            <animateMotion dur="3s" begin="0.2s" repeatCount="indefinite">
-              <mpath xlinkHref="#tabletLineCenter" />
-            </animateMotion>
-          </circle>
-          
-          {/* Right connection line */}
-          <path
-            id="tabletLineRight"
-            d="M 450 230 Q 560 340, 740 520"
-            stroke="#22367b"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            className="drop-shadow-md"
-            strokeOpacity="0.85"
-          >
-            <animate
-              attributeName="stroke-opacity"
-              values="0.75;0.95;0.75"
-              dur="3s"
-              begin="0.4s"
-              repeatCount="indefinite"
-            />
-          </path>
-          <circle
-            cx="740"
-            cy="520"
-            r="5"
-            fill="#22367b"
-            opacity="0.85"
-            className="drop-shadow-md"
-          >
-            <animate
-              attributeName="r"
-              values="5;7;5"
-              dur="1.9s"
-              begin="0.4s"
-              repeatCount="indefinite"
-            />
-          </circle>
-          <circle r="3.5" fill="#22367b" opacity="0.7">
-            <animateMotion dur="3s" begin="0.4s" repeatCount="indefinite">
-              <mpath xlinkHref="#tabletLineRight" />
-            </animateMotion>
-          </circle>
-          <circle cx="450" cy="230" r="4.5" fill="#22367b" opacity="0.6" className="drop-shadow">
-            <animate
-              attributeName="opacity"
-              values="0.5;0.8;0.5"
-              dur="2.5s"
-              repeatCount="indefinite"
-            />
-          </circle>
-        </svg>
-
-        {/* Mobile lines - direct straight lines from main card to child cards */}
-        <svg className="absolute w-full h-full md:hidden" style={{ width: '320px', height: '720px', left: '-160px', top: '-360px' }}>
-          {/* Vertical trunk */}
-          <path
-            id="mobileLineTrunk"
-            d="M 150 130 L 150 190"
-            stroke="#22367b"
-            strokeWidth="2"
-            strokeLinecap="round"
-            fill="none"
-            className="drop-shadow-sm"
-            strokeOpacity="0.85"
-          >
-            <animate
-              attributeName="stroke-opacity"
-              values="0.75;0.95;0.75"
-              dur="2.8s"
-              repeatCount="indefinite"
-            />
-          </path>
-
-          {/* Direct line to left card */}
-          <path
-            id="mobileLineLeft"
-            d="M 150 190 L 80 630"
-            stroke="#22367b"
-            strokeWidth="2"
-            strokeLinecap="round"
-            fill="none"
-            className="drop-shadow-sm"
-            strokeOpacity="0.85"
-          >
-            <animate
-              attributeName="stroke-opacity"
-              values="0.75;0.95;0.75"
-              dur="2.8s"
-              repeatCount="indefinite"
-            />
-          </path>
-          <circle
-            cx="80"
-            cy="630"
-            r="4"
-            fill="#22367b"
-            opacity="0.85"
-            className="drop-shadow-sm"
-          >
-            <animate
-              attributeName="r"
-              values="4;6;4"
-              dur="1.6s"
-              repeatCount="indefinite"
-            />
-          </circle>
-          <circle r="3" fill="#22367b" opacity="0.7">
-            <animateMotion dur="2.8s" repeatCount="indefinite">
-              <mpath xlinkHref="#mobileLineLeft" />
-            </animateMotion>
-          </circle>
-
-          {/* Direct line to center card */}
-          <path
-            id="mobileLineCenter"
-            d="M 150 190 L 150 630"
-            stroke="#22367b"
-            strokeWidth="2"
-            strokeLinecap="round"
-            fill="none"
-            className="drop-shadow-sm"
-            strokeOpacity="0.85"
-          >
-            <animate
-              attributeName="stroke-opacity"
-              values="0.75;0.95;0.75"
-              dur="2.8s"
-              begin="0.2s"
-              repeatCount="indefinite"
-            />
-          </path>
-          <circle
-            cx="150"
-            cy="630"
-            r="4"
-            fill="#22367b"
-            opacity="0.85"
-            className="drop-shadow-sm"
-          >
-            <animate
-              attributeName="r"
-              values="4;6;4"
-              dur="1.6s"
-              begin="0.2s"
-              repeatCount="indefinite"
-            />
-          </circle>
-          <circle r="3" fill="#22367b" opacity="0.7">
-            <animateMotion dur="2.8s" begin="0.2s" repeatCount="indefinite">
-              <mpath xlinkHref="#mobileLineCenter" />
-            </animateMotion>
-          </circle>
-
-          {/* Direct line to right card */}
-          <path
-            id="mobileLineRight"
-            d="M 150 190 L 220 630"
-            stroke="#22367b"
-            strokeWidth="2"
-            strokeLinecap="round"
-            fill="none"
-            className="drop-shadow-sm"
-            strokeOpacity="0.85"
-          >
-            <animate
-              attributeName="stroke-opacity"
-              values="0.75;0.95;0.75"
-              dur="2.8s"
-              begin="0.4s"
-              repeatCount="indefinite"
-            />
-          </path>
-          <circle
-            cx="220"
-            cy="630"
-            r="4"
-            fill="#22367b"
-            opacity="0.85"
-            className="drop-shadow-sm"
-          >
-            <animate
-              attributeName="r"
-              values="4;6;4"
-              dur="1.6s"
-              begin="0.4s"
-              repeatCount="indefinite"
-            />
-          </circle>
-          <circle r="3" fill="#22367b" opacity="0.7">
-            <animateMotion dur="2.8s" begin="0.4s" repeatCount="indefinite">
-              <mpath xlinkHref="#mobileLineRight" />
-            </animateMotion>
-          </circle>
-          <circle cx="150" cy="190" r="4" fill="#22367b" opacity="0.6" className="drop-shadow-sm">
-            <animate
-              attributeName="opacity"
-              values="0.5;0.8;0.5"
-              dur="2.2s"
-              repeatCount="indefinite"
-            />
-          </circle>
-        </svg>
-      </div>
-
-      {/* Main container with optimal spacing */}
-      <div className="relative z-20 min-h-screen flex flex-col items-center justify-center p-6 md:p-10">
-        
-        {/* Main Clevio Node - Increased spacing below */}
-        <div className={`relative mb-32 md:mb-40 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <div className="relative bg-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 px-16 py-10 md:px-20 md:py-12 border border-gray-100" style={{ width: '450px', height: '220px' }}>
-            {/* Subtle gradient overlay for elegance */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-50/50 to-purple-50/50" />
-            
-            {/* Network/Hierarchy icon at top */}
-            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-10">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22367b" strokeWidth="2.5">
-                <circle cx="12" cy="5" r="3"/>
-                <circle cx="5" cy="19" r="3"/>
-                <circle cx="19" cy="19" r="3"/>
-                <line x1="12" y1="8" x2="12" y2="16"/>
-                <line x1="8" y1="17" x2="5" y2="19"/>
-                <line x1="16" y1="17" x2="19" y2="19"/>
-              </svg>
-            </div>
-            
-            <div className="text-center mt-10 z-10 relative">
-              {/* Logo/Brand */}
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#22367b] mb-4 tracking-tight">
-                clevio
-              </h1>
-              
-              {/* Tagline */}
-              <p className="text-lg md:text-xl text-gray-600 font-light tracking-wide">
-                Clever . Leverage . Input . Output
-              </p>
-            </div>
+            <p className="text-sm leading-relaxed text-slate-600 md:text-base">
+             Clevio Group adalah organisasi yang berdiri di atas empat prinsip utama: Clever, Leverage, Human-Centric, dan Great Good. Setiap langkah yang diambil Clevio berfokus pada cara berpikir yang cerdik dan berorientasi pada kemanusiaan, menciptakan teknologi yang bukan hanya inovatif tetapi juga bermakna bagi kehidupan. Dengan semangat untuk memberdayakan manusia melalui pembelajaran, kreativitas, dan teknologi, Clevio berkomitmen membangun ekosistem yang mendorong lahirnya industri baru serta memberikan kontribusi nyata bagi kebaikan bersama dan masa depan yang berkelanjutan.
+            </p>
           </div>
         </div>
 
-        {/* Child Cards Container - Increased spacing between cards */}
-        <div className={`flex flex-col lg:flex-row gap-12 md:gap-16 lg:gap-32 items-center justify-center w-full max-w-8xl transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} mt-24 md:mt-28`}>
-          
-          {/* Left Card - Innovator Camp */}
-          <div 
-            className="relative bg-white rounded-2xl shadow-lg p-8 md:p-10 w-full max-w-sm border border-gray-100"
-            style={{ zIndex: 10 }}
-          >
-            {/* Light bulb icon */}
-            <div className="flex justify-center mb-6 relative z-10">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22367b" strokeWidth="2.5">
-                <path d="M12 2v7m0 0a4 4 0 1 0 0 8c1.5 0 2.9-.6 3.9-1.7"/>
-                <path d="M12 9v3"/>
-                <path d="M8 21h8"/>
-                <path d="M12 17v4"/>
-              </svg>
-            </div>
-            
-            <div className="text-center relative z-10">
-              <h3 className="text-xl md:text-2xl font-bold text-[#22367b] mb-4 uppercase tracking-wide">
-                clevio INNOVATOR CAMP
-              </h3>
-              
-              <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        <div
+          className={`mt-16 grid w-full max-w-5xl gap-8 transition-all duration-700 ${
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          } md:grid-cols-3`}
+        >
+          {offeringCards.map((card, index) => (
+            <div
+              key={card.href}
+              ref={setChildRef(index)}
+              className="relative z-10 flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-lg transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl md:p-10"
+            >
+              <div className="mb-6 flex justify-center">
+                <img src={card.logo} alt={card.alt} className="h-20 w-auto md:h-24" />
+              </div>
+              <p className="flex-1 text-sm leading-relaxed text-slate-600">
+                {card.description}
               </p>
-              
-              <button 
-                onClick={() => window.location.href = '/innovator-camp'}
-                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-3 px-8 rounded-full transform transition-all duration-200 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
+              <a
+                href={card.href}
+                className={`mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r px-6 py-3 text-sm font-semibold text-white shadow-md transition-transform duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500 active:scale-95 ${card.buttonGradient}`}
               >
                 Explore
-              </button>
+              </a>
             </div>
-          </div>
-
-          {/* Center Card - AI Assistants */}
-          <div 
-            className="relative bg-white rounded-2xl shadow-lg p-8 md:p-10 w-full max-w-sm border border-gray-100"
-            style={{ zIndex: 10 }}
-          >
-            {/* AI/Robot icon */}
-            <div className="flex justify-center mb-6 relative z-10">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22367b" strokeWidth="2.5">
-                <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-            </div>
-            
-            <div className="text-center relative z-10">
-              <h3 className="text-xl md:text-2xl font-bold text-[#22367b] mb-4 uppercase tracking-wide">
-                clevio AI ASSISTANTS
-              </h3>
-              
-              <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              </p>
-              
-              <button 
-                onClick={() => window.location.href = '/ai-assistants'}
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-8 rounded-full transform transition-all duration-200 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
-              >
-                Explore
-              </button>
-            </div>
-          </div>
-
-          {/* Right Card - Innovator Pro */}
-          <div 
-            className="relative bg-white rounded-2xl shadow-lg p-8 md:p-10 w-full max-w-sm border border-gray-100"
-            style={{ zIndex: 10 }}
-          >
-            {/* Lightning bolt icon */}
-            <div className="flex justify-center mb-6 relative z-10">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22367b" strokeWidth="2.5">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-              </svg>
-            </div>
-            
-            <div className="text-center relative z-10">
-              <h3 className="text-xl md:text-2xl font-bold text-[#22367b] mb-4 uppercase tracking-wide">
-                clevio INNOVATOR PRO
-              </h3>
-              
-              <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              </p>
-              
-              <button 
-                onClick={() => window.location.href = '/innovator-pro'}
-                className="bg-gradient-to-r from-lime-400 to-emerald-600 hover:from-lime-500 hover:to-emerald-700 text-white font-semibold py-3 px-8 rounded-full transform transition-all duration-200 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
-              >
-                Explore
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Footer Text - Optimized spacing */}
-        <div className={`mt-20 md:mt-24 transition-all duration-1000 delay-500 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
-          <p className="text-sm md:text-base text-gray-500 uppercase tracking-widest font-light">
+        <div
+          className={`mt-20 transition-all duration-700 ${
+            mounted ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <p className="text-sm uppercase tracking-[0.4em] text-slate-500 md:text-base">
             INNOVATION AT YOUR FINGERTIPS
           </p>
         </div>
