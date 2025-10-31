@@ -4,6 +4,7 @@ import "./globals.css";
 import { HydrationSanitizer } from "@/components/hydration-sanitizer";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthSessionProvider } from "@/components/providers/session-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,9 +46,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         <ThemeProvider>
-          <HydrationSanitizer />
-          {children}
-          <Toaster />
+          <AuthSessionProvider>
+            <HydrationSanitizer />
+            {children}
+            <Toaster />
+          </AuthSessionProvider>
         </ThemeProvider>
       </body>
     </html>

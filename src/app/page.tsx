@@ -10,47 +10,87 @@ const poppins = Poppins({
 
 type Language = 'id' | 'en';
 
-const offeringCards = [
+type ProgramKey = 'INNOVATOR_CAMP' | 'INNOVATOR_PRO' | 'AI_ASSISTANTS';
+
+type ProgramCard = {
+  program: ProgramKey;
+  logo: string;
+  href: string;
+  buttonGradient: string;
+  title: Record<Language, string>;
+  description: Record<Language, string>;
+  alt: Record<Language, string>;
+  ctaLabel: Record<Language, string>;
+};
+
+const defaultProgramCards: ProgramCard[] = [
   {
+    program: 'INNOVATOR_CAMP',
     logo: '/logo-innovator-camp.png',
-    alt: {
-      id: 'Logo Innovator Camp',
-      en: 'Innovator Camp Logo',
+    href: '/innovator-camp',
+    buttonGradient: 'from-[#1c2974] to-[#1c2974] hover:from-black hover:to-black',
+    title: {
+      id: 'Innovator Camp',
+      en: 'Innovator Camp',
     },
     description: {
       id: 'Program yang menumbuhkan kreativitas dan kepemimpinan inovator muda melalui eksperimen teknologi.',
       en: 'A program that grows young innovators by blending creativity, leadership, and hands-on technology experiments.',
     },
-    href: '/innovator-camp',
-    buttonGradient: 'from-[#1c2974] to-[#1c2974] hover:from-black hover:to-black',
+    alt: {
+      id: 'Logo Innovator Camp',
+      en: 'Innovator Camp Logo',
+    },
+    ctaLabel: {
+      id: 'Pelajari Innovator Camp',
+      en: 'Explore Innovator Camp',
+    },
   },
   {
+    program: 'INNOVATOR_PRO',
     logo: '/logo-innovator-pro.png',
-    alt: {
-      id: 'Logo Innovator Pro',
-      en: 'Innovator Pro Logo',
+    href: '/innovator-pro',
+    buttonGradient: 'from-[#1c2974] to-[#1c2974] hover:from-black hover:to-black',
+    title: {
+      id: 'Innovator Pro',
+      en: 'Innovator Pro',
     },
     description: {
       id: 'Pendampingan profesional untuk merancang inovasi berkelanjutan dan mengoptimalkan kerja dengan AI.',
       en: 'Professional guidance to design sustainable innovations while optimising work with AI.',
     },
-    href: '/innovator-pro',
-    buttonGradient: 'from-[#1c2974] to-[#1c2974] hover:from-black hover:to-black',
+    alt: {
+      id: 'Logo Innovator Pro',
+      en: 'Innovator Pro Logo',
+    },
+    ctaLabel: {
+      id: 'Pelajari Innovator Pro',
+      en: 'Explore Innovator Pro',
+    },
   },
   {
+    program: 'AI_ASSISTANTS',
     logo: '/logo-ai-assistants.png',
-    alt: {
-      id: 'Logo Clevio AI Assistants',
-      en: 'Clevio AI Assistants Logo',
+    href: '/ai-assistants',
+    buttonGradient: 'from-[#1c2974] to-[#1c2974] hover:from-black hover:to-black',
+    title: {
+      id: 'Clevio AI Assistants',
+      en: 'Clevio AI Assistants',
     },
     description: {
       id: 'Platform asisten AI yang berpihak pada manusia untuk mempercepat produktivitas tanpa kehilangan empati.',
       en: 'A human-first AI assistant platform that accelerates productivity without losing empathy.',
     },
-    href: '/ai-assistants',
-    buttonGradient: 'from-[#1c2974] to-[#1c2974] hover:from-black hover:to-black',
+    alt: {
+      id: 'Logo Clevio AI Assistants',
+      en: 'Clevio AI Assistants Logo',
+    },
+    ctaLabel: {
+      id: 'Pelajari AI Assistants',
+      en: 'Explore AI Assistants',
+    },
   },
-] as const;
+];
 
 const copy: Record<Language, {
   principles: string;
@@ -78,9 +118,66 @@ const copy: Record<Language, {
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [language, setLanguage] = useState<Language>('id');
+  const [programCards, setProgramCards] = useState<ProgramCard[]>(defaultProgramCards);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadPrograms = async () => {
+      try {
+        const response = await fetch('/api/programs', { signal: controller.signal });
+        if (!response.ok) {
+          throw new Error('Failed to load program content');
+        }
+        const data: Array<{
+          program: ProgramKey;
+          titleId: string;
+          titleEn: string;
+          descriptionId: string;
+          descriptionEn: string;
+          ctaLabelId: string;
+          ctaLabelEn: string;
+          imageAltId: string;
+          imageAltEn: string;
+        }> = await response.json();
+
+        setProgramCards((prev) =>
+          prev.map((card) => {
+            const record = data.find((entry) => entry.program === card.program);
+            if (!record) return card;
+            return {
+              ...card,
+              title: {
+                id: record.titleId,
+                en: record.titleEn,
+              },
+              description: {
+                id: record.descriptionId,
+                en: record.descriptionEn,
+              },
+              alt: {
+                id: record.imageAltId,
+                en: record.imageAltEn,
+              },
+              ctaLabel: {
+                id: record.ctaLabelId,
+                en: record.ctaLabelEn,
+              },
+            } satisfies ProgramCard;
+          })
+        );
+      } catch (error) {
+        console.warn('Unable to load program content from API', error);
+      }
+    };
+
+    loadPrograms();
+
+    return () => controller.abort();
   }, []);
 
   return (
@@ -246,12 +343,12 @@ export default function Home() {
             mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           } md:grid-cols-3`}
         >
-          {offeringCards.map((card, index) => (
+          {programCards.map((card) => (
             <div
               key={card.href}
               className="card-panel group relative z-10 flex h-full flex-col rounded-[28px] border border-black/5 bg-white/80 p-8 text-center shadow-[0_25px_60px_-45px_rgba(28,41,116,0.55)] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-2 hover:border-[#1c2974]/20 hover:shadow-[0_35px_85px_-40px_rgba(28,41,116,0.6)] md:p-10"
             >
-              <div className="relative mx-auto mb-8 flex h-28 w-28 items-center justify-center rounded-full border border-black/5 bg-gradient-to-br from-white/70 via-white/40 to-white/10 shadow-[0_20px_45px_-30px_rgba(28,41,116,0.6)] backdrop-blur-xl transition duration-300 group-hover:scale-105">
+              <div className="relative mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full border border-black/5 bg-gradient-to-br from-white/70 via-white/40 to-white/10 shadow-[0_20px_45px_-30px_rgba(28,41,116,0.6)] backdrop-blur-xl transition duration-300 group-hover:scale-105">
                 <div className="absolute inset-1 rounded-full bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-80" />
                 <img
                   src={card.logo}
@@ -259,6 +356,9 @@ export default function Home() {
                   className="relative z-10 h-16 w-auto max-w-[6.5rem] object-contain sm:h-20 sm:max-w-[8rem]"
                 />
               </div>
+              <h3 className={`${poppins.className} text-lg font-semibold text-[#1c2974]`}> 
+                {card.title[language]}
+              </h3>
               <p className={`${poppins.className} flex-1 text-sm leading-relaxed text-black/70 sm:text-base`}>
                 {card.description[language]}
               </p>
@@ -266,7 +366,7 @@ export default function Home() {
                 href={card.href}
                 className={`${poppins.className} mt-8 inline-flex items-center justify-center rounded-full bg-gradient-to-r px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_-12px_rgba(28,41,116,0.55)] transition duration-200 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 active:scale-95 ${card.buttonGradient}`}
               >
-                {language === 'id' ? 'Jelajahi' : 'Explore'}
+                {card.ctaLabel[language]}
               </a>
             </div>
           ))}

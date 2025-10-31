@@ -9,24 +9,51 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum ProgramKey {
+  INNOVATOR_CAMP
+  INNOVATOR_PRO
+  AI_ASSISTANTS
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Admin {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
+  passwordHash String
+  role         String        @default("admin")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  programEdits ProgramContent[] @relation("ProgramContentUpdatedBy")
+  pageEdits    ProgramPageContent[] @relation("ProgramPageContentUpdatedBy")
+}
+
+model ProgramContent {
+  id              String     @id @default(cuid())
+  program         ProgramKey @unique
+  titleId         String
+  titleEn         String
+  descriptionId   String
+  descriptionEn   String
+  ctaLabelId      String
+  ctaLabelEn      String
+  imageAltId      String
+  imageAltEn      String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  updatedById     String?
+  updatedBy       Admin?     @relation("ProgramContentUpdatedBy", fields: [updatedById], references: [id])
+}
+
+model ProgramPageContent {
+  id          String     @id @default(cuid())
+  program     ProgramKey @unique
+  data        Json
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  updatedById String?
+  updatedBy   Admin?     @relation("ProgramPageContentUpdatedBy", fields: [updatedById], references: [id])
 }

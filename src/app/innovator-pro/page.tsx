@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import {
   LanguageProvider,
   PageHeader,
@@ -19,49 +21,74 @@ import { anchorNavItems, chatConfig, stickyCta } from '@/content/global';
 import { innovatorProContent } from '@/content/innovator-pro';
 
 export default function InnovatorProPage() {
+  const [content, setContent] = useState<typeof innovatorProContent>(innovatorProContent);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      try {
+        const response = await fetch('/api/program-pages/INNOVATOR_PRO');
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (active && payload?.data) {
+          setContent(payload.data as typeof innovatorProContent);
+        }
+      } catch (error) {
+        console.warn('Failed to load Innovator Pro content', error);
+      }
+    };
+
+    load();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <LanguageProvider defaultLocale="id">
       <PageHeader items={anchorNavItems} />
       <main>
-        <HeroSection {...innovatorProContent.hero} />
+        <HeroSection {...content.hero} />
         <IconCardGrid
           id="highlights"
           title={{ id: 'Sorotan Layanan', en: 'Service Highlights' }}
-          items={innovatorProContent.highlights}
+          items={content.highlights}
           accentColor="from-slate-100 to-white"
         />
         <StepStrip
           id="how"
           title={{ id: 'Pendekatan Implementasi', en: 'Implementation Approach' }}
-          steps={innovatorProContent.howItWorks}
+          steps={content.howItWorks}
           columns={4}
         />
         <ImageTileGrid
           id="tracks"
           title={{ id: 'Track & Modul', en: 'Tracks & Modules' }}
-          items={innovatorProContent.tracks}
+          items={content.tracks}
         />
         <BeforeAfterGrid
           id="outcomes"
           title={{ id: 'Dampak yang Dicapai', en: 'Outcomes Delivered' }}
-          items={innovatorProContent.outcomes}
+          items={content.outcomes}
         />
         <GallerySlider
           id="gallery"
           title={{ id: 'Galeri Program', en: 'Program Gallery' }}
-          slides={innovatorProContent.gallery}
+          slides={content.gallery}
         />
         <TestimonialSlider
           id="testimonials"
           title={{ id: 'Cerita Klien', en: 'Client Stories' }}
-          items={innovatorProContent.testimonials}
+          items={content.testimonials}
         />
         <FAQSection
           id="faq"
           title={{ id: 'Pertanyaan Umum', en: 'Frequently Asked Questions' }}
-          items={innovatorProContent.faq}
+          items={content.faq}
         />
-        <ContactSection {...innovatorProContent.contact} />
+        <ContactSection {...content.contact} />
       </main>
       <FloatingChatButton webhookUrl={chatConfig.webhookUrl} intro={chatConfig.intro} />
       <StickyCtaBar label={stickyCta.label} href={stickyCta.href} />
