@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Poppins } from 'next/font/google';
 
 const poppins = Poppins({
@@ -101,14 +101,14 @@ const copy: Record<Language, {
 }> = {
   id: {
     principles: 'Clever · Leverage · Human-Centric · Great Good',
-    heroTitle: 'Memberdayakan Manusia Lewat Inovasi Cerdas',
+    heroTitle: 'Berdayakan Manusia Berinovasi',
     heroSubtitle: 'Clevio Group menggerakkan inovasi cerdas dan berpusat pada manusia untuk menghadirkan solusi berarti bagi masa depan.',
     exploreLabel: 'Apa itu Clevio?',
     exploreLink: 'Mari jelajahi sekarang',
   },
   en: {
     principles: 'Clever · Leverage · Human-Centric · Great Good',
-    heroTitle: 'Empowering People with Clever Innovation',
+    heroTitle: 'Empowering People to Innovate',
     heroSubtitle: 'Clevio Group drives clever, human-centered innovation to deliver meaningful solutions for the future.',
     exploreLabel: 'What is Clevio?',
     exploreLink: "Let's explore now",
@@ -119,6 +119,19 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [language, setLanguage] = useState<Language>('id');
   const [programCards, setProgramCards] = useState<ProgramCard[]>(defaultProgramCards);
+  const [activeCard, setActiveCard] = useState<number>(0);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const getProgramSectionId = (program: ProgramKey) => `program-${program.toLowerCase()}`;
+
+  const scrollToCard = (index: number) => {
+    setActiveCard(index);
+    cardRefs.current[index]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+      inline: 'center',
+    });
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -182,7 +195,7 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen overflow-hidden font-sans bg-gradient-to-br from-white via-[#f6f7fb] to-[#e9ecf5]">
-      <div className="absolute top-6 right-6 z-30">
+      <div className="fixed top-4 right-4 z-30 md:top-6 md:right-6">
         <div className="flex overflow-hidden rounded-full border border-black/10 bg-white/80 shadow-[0_8px_20px_-12px_rgba(28,41,116,0.45)] backdrop-blur-sm">
           {(['id', 'en'] as Language[]).map((lang) => {
             const isActive = language === lang;
@@ -198,7 +211,7 @@ export default function Home() {
                     : 'text-black/60 hover:text-black hover:bg-black/[0.04]'
                 }`}
               >
-                {lang === 'id' ? 'Bahasa' : 'English'}
+                {lang === 'id' ? 'Indonesia' : 'English'}
               </button>
             );
           })}
@@ -294,7 +307,7 @@ export default function Home() {
         </div>
       )}
 
-      <div className="relative z-20 flex min-h-screen flex-col items-center justify-center px-6 py-24 md:px-10">
+      <div className="relative z-20 hidden min-h-screen flex-col items-center justify-center px-6 py-24 md:flex md:px-10">
         <div
           className={`hero-shell relative w-full max-w-4xl transition-all duration-700 ${
             mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -329,7 +342,7 @@ export default function Home() {
                 {copy[language].heroTitle}
               </h1>
               <p
-                className={`${poppins.className} mt-6 max-w-3xl text-base text-black/70 sm:text-lg`}
+                className={`${poppins.className} mt-6 max-w-3xl text-[2px] text-black/70 sm:text-lg`}
               >
                 {copy[language].heroSubtitle}
               </p>
@@ -346,6 +359,7 @@ export default function Home() {
           {programCards.map((card) => (
             <div
               key={card.href}
+              id={getProgramSectionId(card.program)}
               className="card-panel group relative z-10 flex h-full flex-col rounded-[28px] border border-black/5 bg-white/80 p-8 text-center shadow-[0_25px_60px_-45px_rgba(28,41,116,0.55)] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-2 hover:border-[#1c2974]/20 hover:shadow-[0_35px_85px_-40px_rgba(28,41,116,0.6)] md:p-10"
             >
               <div className="relative mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full border border-black/5 bg-gradient-to-br from-white/70 via-white/40 to-white/10 shadow-[0_20px_45px_-30px_rgba(28,41,116,0.6)] backdrop-blur-xl transition duration-300 group-hover:scale-105">
@@ -386,6 +400,141 @@ export default function Home() {
               {copy[language].exploreLink}
               <span className="absolute -bottom-1 left-0 h-px w-full bg-gradient-to-r from-transparent via-[#1c2974]/40 to-transparent opacity-60" />
             </a>
+          </p>
+        </div>
+      </div>
+
+      <div className="relative z-20 flex min-h-screen flex-col px-4 py-6 md:hidden">
+        <div
+          className={`hero-shell relative mt-16 mb-14 pb-16 transition-all duration-700 ${
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+        >
+          <div
+            className="pointer-events-none absolute -inset-[4px] rounded-[32px] border border-black/5 bg-gradient-to-br from-white/60 via-white/30 to-white/10 opacity-80 backdrop-blur-2xl"
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute -top-12 left-1/2 h-20 w-3/4 -translate-x-1/2 rounded-full bg-gradient-to-br from-[#1c2974]/25 via-[#1c2974]/10 to-transparent blur-3xl"
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute -bottom-16 left-1/2 h-24 w-2/3 -translate-x-1/2 rounded-full bg-gradient-to-t from-[#1c2974]/30 via-[#1c2974]/15 to-transparent blur-[80px]"
+            aria-hidden="true"
+          />
+          <div className="relative overflow-hidden rounded-3xl border border-black/[0.05] bg-white/80 px-6 py-12 text-center shadow-[0_40px_90px_-45px_rgba(28,41,116,0.45)] backdrop-blur-[80px]">
+            <div
+              className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[#1c2974]/30 to-transparent"
+              aria-hidden="true"
+            />
+            <div className="relative flex flex-col items-center text-center">
+              <span
+                className={`${poppins.className} text-[7px] font-medium uppercase tracking-[0.5em] text-[#1c2974]`}
+              >
+                {copy[language].principles}
+              </span>
+              <h1
+                className={`${poppins.className} mt-4 text-2xl font-semibold leading-tight tracking-tight text-black`}
+              >
+                {copy[language].heroTitle}
+              </h1>
+              <p
+               className={`${poppins.className} mt-4 max-w-md leading-relaxed text-black/70 text-[10px]`}
+                            >
+                     {copy[language].heroSubtitle}
+              </p>
+
+              <div className="mt-8 flex items-center justify-center gap-4">
+                {programCards.map((card, index) => (
+                  <button
+                    key={`${card.program}-mobile`}
+                    type="button"
+                    onClick={() => scrollToCard(index)}
+                    aria-pressed={activeCard === index}
+                    className={`flex flex-col items-center gap-2 transition-all duration-200 ${
+                      activeCard === index ? 'scale-105' : 'opacity-70 hover:opacity-100 hover:scale-105'
+                    }`}
+                  >
+                    <div
+                      className={`flex h-16 w-16 items-center justify-center rounded-full border-2 transition-all shadow-[0_8px_20px_-10px_rgba(28,41,116,0.4)] ${
+                        activeCard === index
+                          ? 'border-[#1c2974] bg-[#1c2974]/10 shadow-lg'
+                          : 'border-black/10 bg-white hover:border-[#1c2974]/30'
+                      }`}
+                    >
+                      <img
+                        src={card.logo}
+                        alt={card.alt[language]}
+                        className="h-10 w-auto max-w-[3.5rem] object-contain"
+                      />
+                    </div>
+                    <span
+                      className={`text-[9px] font-medium uppercase tracking-wider ${
+                        activeCard === index ? 'text-[#1c2974]' : 'text-black/50'
+                      }`}
+                    >
+                      {index === 0 ? 'Camp' : index === 1 ? 'Pro' : 'AI'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 space-y-6 pb-8">
+          {programCards.map((card, index) => (
+            <div
+              key={card.href}
+              id={getProgramSectionId(card.program)}
+              ref={(el) => {
+                cardRefs.current[index] = el;
+              }}
+              className={`card-panel relative flex flex-col rounded-3xl border bg-white/80 p-6 text-center shadow-[0_25px_60px_-45px_rgba(28,41,116,0.55)] backdrop-blur-2xl transition-all duration-300 ${
+                activeCard === index
+                  ? 'border-[#1c2974]/20 shadow-[0_35px_85px_-40px_rgba(28,41,116,0.6)]'
+                  : 'border-black/5'
+              }`}
+            >
+              <div className="relative mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full border border-black/5 bg-gradient-to-br from-white/70 via-white/40 to-white/10 shadow-[0_20px_45px_-30px_rgba(28,41,116,0.6)] backdrop-blur-xl">
+                <div className="absolute inset-1 rounded-full bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-80" />
+                <img
+                  src={card.logo}
+                  alt={card.alt[language]}
+                  className="relative z-10 h-12 w-auto max-w-[5rem] object-contain"
+                />
+              </div>
+              <h3 className={`${poppins.className} text-lg font-semibold text-[#1c2974]`}>
+                {card.title[language]}
+              </h3>
+              <p className={`${poppins.className} mt-2 flex-1 text-sm leading-relaxed text-black/70`}>
+                {card.description[language]}
+              </p>
+              <a
+                href={card.href}
+                className={`${poppins.className} mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r px-6 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_-12px_rgba(28,41,116,0.55)] transition duration-200 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 active:scale-95 ${card.buttonGradient}`}
+              >
+                {card.ctaLabel[language]}
+              </a>
+            </div>
+          ))}
+        </div>
+
+        <div
+          className={`mt-6 mb-4 text-center transition-all duration-700 ${
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          }`}
+        >
+          <p className={`${poppins.className} text-sm text-black/70`}>
+            {copy[language].exploreLabel}{' '}
+            <button
+              type="button"
+              onClick={() => scrollToCard(0)}
+              className="relative font-semibold text-[#1c2974] transition hover:text-black"
+            >
+              {copy[language].exploreLink}
+              <span className="absolute -bottom-1 left-0 h-px w-full bg-gradient-to-r from-transparent via-[#1c2974]/40 to-transparent opacity-60" />
+            </button>
           </p>
         </div>
       </div>
