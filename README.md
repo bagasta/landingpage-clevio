@@ -54,23 +54,73 @@ This scaffold provides a robust foundation built with:
 - **🚀 Production Ready** - Optimized build and deployment settings
 - **🤖 AI-Friendly** - Structured codebase perfect for AI assistance
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
+### 1. Prerequisites
+- **Node.js** 20 LTS (install via [nvm](https://github.com/nvm-sh/nvm) or download from [nodejs.org](https://nodejs.org/))
+- **npm** ≥ 10 (included with Node 20)  
+- **PostgreSQL** 14+ with a dedicated database for this app
+- Recommended CLI tooling: `openssl` (for generating secrets) and `git`
+
+### 2. Clone & Install
 ```bash
-# Install dependencies
+git clone https://github.com/your-org/landing-page-clevio.git
+cd landing-page-clevio
 npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your application running.
+### 3. Configure Environment Variables
+1. Duplicate the example env file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Update the new `.env` with values for:
+   - `DATABASE_URL` — PostgreSQL connection string  
+     Example: `postgresql://user:password@localhost:5432/clevio?schema=public`
+   - `NEXTAUTH_SECRET` — generate with `openssl rand -base64 32`
+   - `NEXTAUTH_URL` — typically `http://localhost:3000` during local development
+   - Any provider credentials (email, OAuth, SMTP) if you extend auth
+
+### 4. Database Setup
+Run Prisma migrations and seed the starter content (program copy + admin accounts):
+```bash
+npx prisma migrate deploy   # or `prisma db push` for first-time local dev
+npx prisma db seed
+```
+
+Seeded admin credentials include:
+- Email: `admin@clevio.com`
+- Password: `humancentric`
+
+> Tip: update or remove the seeded admin users once your team has created real accounts.
+
+### 5. Development Workflow
+```bash
+# Run the Next.js dev server (Port 3123 is set in package.json > scripts.dev)
+npm run dev
+
+# Access the site
+open http://localhost:3123
+
+# Access the admin dashboard
+open http://localhost:3123/admin
+```
+
+### 6. Production Build
+```bash
+npm run build
+npm run start   # starts the custom Node server defined in server.ts
+```
+
+- Ensure `NODE_ENV=production` and production environment variables are set.
+- The `start` script uses `tsx server.ts`, which expects the build output in `.next`.
+
+### 7. Optional Tooling
+- **Prisma Studio** (inspect DB): `npx prisma studio`
+- **Linting**: `npm run lint`
+- **Regenerate Prisma client**: `npx prisma generate`
+
+Now you’re ready to iterate! Keep an eye on the [how-to-deploy.md](how-to-deploy.md) guide for VPS deployment specifics.
 
 ## 🤖 Powered by Z.ai
 

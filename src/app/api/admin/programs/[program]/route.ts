@@ -20,7 +20,7 @@ const bodySchema = z.object({
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { program: string } }
+  context: { params: Promise<{ program: string }> }
 ) {
   const session = await getServerSession(authOptions)
 
@@ -28,7 +28,8 @@ export async function PATCH(
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
   }
 
-  const programKey = params.program?.toUpperCase()
+  const { program } = await context.params
+  const programKey = program?.toUpperCase()
 
   if (
     programKey !== 'INNOVATOR_CAMP' &&

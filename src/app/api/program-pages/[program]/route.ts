@@ -15,9 +15,10 @@ const fallbackContent: Record<ProgramKey, unknown> = {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { program: string } }
+  context: { params: Promise<{ program: string }> }
 ) {
-  const programKey = params.program?.toUpperCase()
+  const { program } = await context.params
+  const programKey = program?.toUpperCase()
 
   if (
     programKey !== 'INNOVATOR_CAMP' &&
