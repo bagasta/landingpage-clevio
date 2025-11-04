@@ -195,8 +195,8 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen overflow-hidden font-sans bg-gradient-to-br from-white via-[#f6f7fb] to-[#e9ecf5]">
-      <div className="fixed top-4 right-4 z-30 md:top-6 md:right-6">
-        <div className="flex overflow-hidden rounded-full border border-black/10 bg-white/80 shadow-[0_8px_20px_-12px_rgba(28,41,116,0.45)] backdrop-blur-sm">
+      <div className="fixed top-4 right-4 z-50 md:top-6 md:right-6">
+        <div className="flex overflow-hidden rounded-full border border-black/10 bg-white/90 shadow-[0_8px_20px_-12px_rgba(28,41,116,0.45)] backdrop-blur-sm">
           {(['id', 'en'] as Language[]).map((lang) => {
             const isActive = language === lang;
             return (
@@ -473,7 +473,7 @@ export default function Home() {
                         activeCard === index ? 'text-[#1c2974]' : 'text-black/50'
                       }`}
                     >
-                      {index === 0 ? 'Camp' : index === 1 ? 'Pro' : 'AI'}
+                      {index === 0 ? '' : index === 1 ? '' : ''}
                     </span>
                   </button>
                 ))}
