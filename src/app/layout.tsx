@@ -17,22 +17,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Z.ai Code Scaffold - AI-Powered Development",
-  description: "Modern Next.js scaffold optimized for AI-powered development with Z.ai. Built with TypeScript, Tailwind CSS, and shadcn/ui.",
-  keywords: ["Z.ai", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "AI development", "React"],
+  title: "Clevio",
+  description: "Empowering People to Innovate",
+  keywords: ["Clev.io", "Clevio Coder Camp", "Clevio Innovator", "Clevio Innovaotor Camp", "Kursus Coding", "Clevio Innovator Pro", "Clevio AI Employees"],
   authors: [{ name: "Z.ai Team" }],
   openGraph: {
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
-    url: "https://chat.z.ai",
-    siteName: "Z.ai",
+    title: "Clevio",
+    description: "Empowering People to Innovate",
+    url: "https://clev.io",
+    siteName: "clev.io",
     type: "website",
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
-  },
+  // twitter: {
+  //   card: "summary_large_image",
+  //   title: "Z.ai Code Scaffold",
+  //   description: "AI-powered development with modern React stack",
+  // },
 };
 
 export default function RootLayout({

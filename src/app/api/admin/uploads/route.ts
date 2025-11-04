@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import sharp from 'sharp'
 
 const uploadDir = path.join(process.cwd(), 'public', 'uploads')
 
@@ -31,12 +32,56 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const ext = path.extname(file.name) || '.png'
+    const widthParam = formData.get('width')
+    const heightParam = formData.get('height')
+    const fitParam = (formData.get('fit') as string) ?? 'cover'
+    const formatParam = (formData.get('format') as string) ?? 'webp'
+
+    const parsedWidth = widthParam ? Number(widthParam) : undefined
+    const parsedHeight = heightParam ? Number(heightParam) : undefined
+
+    if (
+      (parsedWidth !== undefined && (!Number.isFinite(parsedWidth) || parsedWidth <= 0)) ||
+      (parsedHeight !== undefined && (!Number.isFinite(parsedHeight) || parsedHeight <= 0))
+    ) {
+      return NextResponse.json({ message: 'Dimensi gambar tidak valid.' }, { status: 400 })
+    }
+
     const baseName = crypto.randomUUID()
-    const fileName = `${baseName}${ext}`
+    const targetExt = formatParam === 'jpeg' || formatParam === 'jpg'
+      ? '.jpg'
+      : formatParam === 'png'
+        ? '.png'
+        : '.webp'
+    const fileName = `${baseName}${targetExt}`
     const filePath = path.join(uploadDir, fileName)
 
-    await fs.writeFile(filePath, buffer)
+    const transformer = sharp(buffer, { failOnError: false }).rotate()
+
+    if (parsedWidth || parsedHeight) {
+      transformer.resize({
+        width: parsedWidth,
+        height: parsedHeight,
+        fit: fitParam === 'contain' ? 'inside' : 'cover',
+        position: 'centre',
+        withoutEnlargement: true,
+      })
+    }
+
+    let outputBuffer: Buffer
+    switch (targetExt) {
+      case '.jpg':
+        outputBuffer = await transformer.jpeg({ quality: 82 }).toBuffer()
+        break
+      case '.png':
+        outputBuffer = await transformer.png({ compressionLevel: 9 }).toBuffer()
+        break
+      default:
+        outputBuffer = await transformer.webp({ quality: 82 }).toBuffer()
+        break
+    }
+
+    await fs.writeFile(filePath, outputBuffer)
 
     const urlPath = `/uploads/${fileName}`
 

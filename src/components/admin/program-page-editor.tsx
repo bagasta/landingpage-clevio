@@ -175,11 +175,13 @@ function ImageUploadField({
   name,
   label,
   helper,
+  resize,
 }: {
   control: Control<any>
   name: string
   label: string
   helper?: string
+  resize?: { width?: number; height?: number; fit?: 'cover' | 'contain'; format?: 'webp' | 'jpeg' | 'png' }
 }) {
   const { field } = useController({ control, name })
   const [isUploading, setUploading] = useState(false)
@@ -192,6 +194,10 @@ function ImageUploadField({
     try {
       const formData = new FormData()
       formData.append('file', file)
+      if (resize?.width) formData.append('width', String(resize.width))
+      if (resize?.height) formData.append('height', String(resize.height))
+      if (resize?.fit) formData.append('fit', resize.fit)
+      if (resize?.format) formData.append('format', resize.format)
       const response = await fetch('/api/admin/uploads', {
         method: 'POST',
         body: formData,
@@ -220,7 +226,7 @@ function ImageUploadField({
           <img
             src={currentValue}
             alt="Preview"
-            className="max-h-40 max-w-full rounded-xl object-contain"
+            className="max-h-40 max-w-full rounded-xl object-cover"
           />
           <input
             value={currentValue}
@@ -380,6 +386,7 @@ function CampPageEditor({ page }: { page: AdminProgramPage }) {
             name="hero.image.src"
             label="Hero - Gambar"
             helper="Unggah gambar hero (rekomendasi 1280×720)."
+            resize={{ width: 1280, height: 720, fit: 'cover' }}
           />
           <LocalizedField label="Alt Gambar" register={register} idName="hero.image.alt.id" enName="hero.image.alt.en" />
         </Section>
@@ -430,6 +437,7 @@ function CampPageEditor({ page }: { page: AdminProgramPage }) {
             register={register}
             basePath="howItWorks"
             control={control}
+            imageSize={{ width: 512, height: 512, fit: 'cover' }}
           />
         </Section>
 
@@ -440,11 +448,21 @@ function CampPageEditor({ page }: { page: AdminProgramPage }) {
               <LocalizedField label="Manfaat" register={register} idName={`outcomes.${index}.benefit.id`} enName={`outcomes.${index}.benefit.en`} />
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-3 rounded-xl bg-white/80 p-3">
-                  <ImageUploadField control={control} name={`outcomes.${index}.beforeImage.src`} label="Before - Gambar" />
+                  <ImageUploadField
+                    control={control}
+                    name={`outcomes.${index}.beforeImage.src`}
+                    label="Before - Gambar"
+                    resize={{ width: 512, height: 512, fit: 'cover' }}
+                  />
                   <LocalizedField label="Before - Alt" register={register} idName={`outcomes.${index}.beforeImage.alt.id`} enName={`outcomes.${index}.beforeImage.alt.en`} />
                 </div>
                 <div className="space-y-3 rounded-xl bg-white/80 p-3">
-                  <ImageUploadField control={control} name={`outcomes.${index}.afterImage.src`} label="After - Gambar" />
+                  <ImageUploadField
+                    control={control}
+                    name={`outcomes.${index}.afterImage.src`}
+                    label="After - Gambar"
+                    resize={{ width: 512, height: 512, fit: 'cover' }}
+                  />
                   <LocalizedField label="After - Alt" register={register} idName={`outcomes.${index}.afterImage.alt.id`} enName={`outcomes.${index}.afterImage.alt.en`} />
                 </div>
               </div>
@@ -478,7 +496,12 @@ function CampPageEditor({ page }: { page: AdminProgramPage }) {
         <Section title="Galeri">
           {gallery.fields.map((field, index) => (
             <div key={field.id} className="space-y-3 rounded-2xl border border-black/10 p-4">
-              <ImageUploadField control={control} name={`gallery.${index}.src`} label="Gambar" />
+              <ImageUploadField
+                control={control}
+                name={`gallery.${index}.src`}
+                label="Gambar"
+                resize={{ width: 1024, height: 576, fit: 'cover' }}
+              />
               <LocalizedField label="Alt" register={register} idName={`gallery.${index}.alt.id`} enName={`gallery.${index}.alt.en`} />
               <div className="flex justify-end">
                 <button
@@ -641,7 +664,13 @@ function InnovatorProPageEditor({ page }: { page: AdminProgramPage }) {
             <TextField label="Link Tombol Sekunder" name="hero.secondaryCta.href" register={register} />
           </div>
           <TextField label="Background Tone" name="hero.backgroundTone" register={register} />
-          <ImageUploadField control={control} name="hero.image.src" label="Hero - Gambar" helper="Unggah gambar hero (rekomendasi 1280×720)." />
+          <ImageUploadField
+            control={control}
+            name="hero.image.src"
+            label="Hero - Gambar"
+            helper="Unggah gambar hero (rekomendasi 1280×720)."
+            resize={{ width: 1280, height: 720, fit: 'cover' }}
+          />
           <LocalizedField label="Alt Gambar" register={register} idName="hero.image.alt.id" enName="hero.image.alt.en" />
         </Section>
 
@@ -677,7 +706,12 @@ function InnovatorProPageEditor({ page }: { page: AdminProgramPage }) {
           {tracks.fields.map((field, index) => (
             <div key={field.id} className="space-y-3 rounded-2xl border border-black/10 p-4">
               <LocalizedField label="Judul" register={register} idName={`tracks.${index}.title.id`} enName={`tracks.${index}.title.en`} />
-              <ImageUploadField control={control} name={`tracks.${index}.image.src`} label="Gambar" />
+              <ImageUploadField
+                control={control}
+                name={`tracks.${index}.image.src`}
+                label="Gambar"
+                resize={{ width: 640, height: 400, fit: 'cover' }}
+              />
               <LocalizedField label="Alt Gambar" register={register} idName={`tracks.${index}.image.alt.id`} enName={`tracks.${index}.image.alt.en`} />
               <div className="flex justify-end">
                 <button
@@ -713,6 +747,7 @@ function InnovatorProPageEditor({ page }: { page: AdminProgramPage }) {
             register={register}
             basePath="howItWorks"
             control={control}
+            imageSize={{ width: 512, height: 512, fit: 'cover' }}
           />
         </Section>
 
@@ -723,11 +758,21 @@ function InnovatorProPageEditor({ page }: { page: AdminProgramPage }) {
               <LocalizedField label="Manfaat" register={register} idName={`outcomes.${index}.benefit.id`} enName={`outcomes.${index}.benefit.en`} />
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-3 rounded-xl bg-white/80 p-3">
-                  <ImageUploadField control={control} name={`outcomes.${index}.beforeImage.src`} label="Before - Gambar" />
+                  <ImageUploadField
+                    control={control}
+                    name={`outcomes.${index}.beforeImage.src`}
+                    label="Before - Gambar"
+                    resize={{ width: 512, height: 512, fit: 'cover' }}
+                  />
                   <LocalizedField label="Before - Alt" register={register} idName={`outcomes.${index}.beforeImage.alt.id`} enName={`outcomes.${index}.beforeImage.alt.en`} />
                 </div>
                 <div className="space-y-3 rounded-xl bg-white/80 p-3">
-                  <ImageUploadField control={control} name={`outcomes.${index}.afterImage.src`} label="After - Gambar" />
+                  <ImageUploadField
+                    control={control}
+                    name={`outcomes.${index}.afterImage.src`}
+                    label="After - Gambar"
+                    resize={{ width: 512, height: 512, fit: 'cover' }}
+                  />
                   <LocalizedField label="After - Alt" register={register} idName={`outcomes.${index}.afterImage.alt.id`} enName={`outcomes.${index}.afterImage.alt.en`} />
                 </div>
               </div>
@@ -761,7 +806,12 @@ function InnovatorProPageEditor({ page }: { page: AdminProgramPage }) {
         <Section title="Galeri Program">
           {gallery.fields.map((field, index) => (
             <div key={field.id} className="space-y-3 rounded-2xl border border-black/10 p-4">
-              <ImageUploadField control={control} name={`gallery.${index}.src`} label="Gambar" />
+              <ImageUploadField
+                control={control}
+                name={`gallery.${index}.src`}
+                label="Gambar"
+                resize={{ width: 1024, height: 576, fit: 'cover' }}
+              />
               <LocalizedField label="Alt" register={register} idName={`gallery.${index}.alt.id`} enName={`gallery.${index}.alt.en`} />
               <div className="flex justify-end">
                 <button
@@ -921,7 +971,13 @@ function AiAssistantsPageEditor({ page }: { page: AdminProgramPage }) {
             <TextField label="Link Tombol" name="hero.primaryCta.href" register={register} />
           </div>
           <TextField label="Background Tone" name="hero.backgroundTone" register={register} />
-          <ImageUploadField control={control} name="hero.image.src" label="Hero - Gambar" helper="Unggah gambar hero (rekomendasi 1280×720)." />
+          <ImageUploadField
+            control={control}
+            name="hero.image.src"
+            label="Hero - Gambar"
+            helper="Unggah gambar hero (rekomendasi 1280×720)."
+            resize={{ width: 1280, height: 720, fit: 'cover' }}
+          />
           <LocalizedField label="Alt Gambar" register={register} idName="hero.image.alt.id" enName="hero.image.alt.en" />
         </Section>
 
@@ -957,7 +1013,12 @@ function AiAssistantsPageEditor({ page }: { page: AdminProgramPage }) {
           {useCases.fields.map((field, index) => (
             <div key={field.id} className="space-y-3 rounded-2xl border border-black/10 p-4">
               <LocalizedField label="Judul" register={register} idName={`useCases.${index}.title.id`} enName={`useCases.${index}.title.en`} />
-              <ImageUploadField control={control} name={`useCases.${index}.image.src`} label="Gambar" />
+              <ImageUploadField
+                control={control}
+                name={`useCases.${index}.image.src`}
+                label="Gambar"
+                resize={{ width: 640, height: 400, fit: 'cover' }}
+              />
               <LocalizedField label="Alt Gambar" register={register} idName={`useCases.${index}.image.alt.id`} enName={`useCases.${index}.image.alt.en`} />
               <div className="flex justify-end">
                 <button
@@ -993,6 +1054,7 @@ function AiAssistantsPageEditor({ page }: { page: AdminProgramPage }) {
             register={register}
             basePath="howItWorks"
             control={control}
+            imageSize={{ width: 512, height: 512, fit: 'cover' }}
           />
         </Section>
 
@@ -1024,7 +1086,12 @@ function AiAssistantsPageEditor({ page }: { page: AdminProgramPage }) {
         <Section title="Galeri Produk">
           {gallery.fields.map((field, index) => (
             <div key={field.id} className="space-y-3 rounded-2xl border border-black/10 p-4">
-              <ImageUploadField control={control} name={`gallery.${index}.src`} label="Gambar" />
+              <ImageUploadField
+                control={control}
+                name={`gallery.${index}.src`}
+                label="Gambar"
+                resize={{ width: 1024, height: 576, fit: 'cover' }}
+              />
               <LocalizedField label="Alt" register={register} idName={`gallery.${index}.alt.id`} enName={`gallery.${index}.alt.en`} />
               <div className="flex justify-end">
                 <button
@@ -1138,6 +1205,7 @@ function ArraySectionWithImage({
   register,
   basePath,
   control,
+  imageSize,
 }: {
   fields: { id: string }[]
   remove: (index: number) => void
@@ -1145,6 +1213,7 @@ function ArraySectionWithImage({
   register: UseFormRegister<any>
   basePath: string
   control: Control<any>
+  imageSize?: { width?: number; height?: number; fit?: 'cover' | 'contain'; format?: 'webp' | 'jpeg' | 'png' }
 }) {
   return (
     <div className="space-y-4">
@@ -1152,7 +1221,12 @@ function ArraySectionWithImage({
         <div key={field.id} className="space-y-3 rounded-2xl border border-black/10 p-4">
           <LocalizedField label="Judul" register={register} idName={`${basePath}.${index}.title.id`} enName={`${basePath}.${index}.title.en`} />
           <LocalizedField label="Subjudul" register={register} idName={`${basePath}.${index}.caption.id`} enName={`${basePath}.${index}.caption.en`} />
-          <ImageUploadField control={control} name={`${basePath}.${index}.image.src`} label="Gambar" />
+          <ImageUploadField
+            control={control}
+            name={`${basePath}.${index}.image.src`}
+            label="Gambar"
+            resize={imageSize}
+          />
           <LocalizedField label="Alt Gambar" register={register} idName={`${basePath}.${index}.image.alt.id`} enName={`${basePath}.${index}.image.alt.en`} />
           <div className="flex justify-end">
             <button

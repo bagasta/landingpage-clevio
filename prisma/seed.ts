@@ -23,6 +23,11 @@ const admins = [
     email: 'nadia@clevio.com',
     password: 'clevio-nadia',
   },
+  {
+    name: 'Admin',
+    email: 'admin@clevio.com',
+    password: 'humancentric',
+  },
 ]
 
 async function seedAdmins() {
