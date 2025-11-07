@@ -10,8 +10,15 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/classroom",
+        destination:
+          "https://us06web.zoom.us/j/4805595450?pwd=XTAPk0zNuhEBDXUhMKpWTmrKLhB7pc.1",
+        permanent: true,
+      },
+      {
         source: "/Classroom",
-        destination: "/classroom",
+        destination:
+          "https://us06web.zoom.us/j/4805595450?pwd=XTAPk0zNuhEBDXUhMKpWTmrKLhB7pc.1",
         permanent: true,
       },
     ];
