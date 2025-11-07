@@ -128,10 +128,10 @@ Dokumen ini menjelaskan langkah demi langkah untuk melakukan deployment proyek N
    ```nginx
    server {
        listen 80;
-       server_name contoh-domain.com www.contoh-domain.com;
+       server_name clev.io www.clev.io;
 
        location / {
-           proxy_pass http://127.0.0.1:3000;
+           proxy_pass http://127.0.0.1:3123;
            proxy_http_version 1.1;
            proxy_set_header Upgrade $http_upgrade;
            proxy_set_header Connection 'upgrade';
@@ -157,7 +157,7 @@ Dokumen ini menjelaskan langkah demi langkah untuk melakukan deployment proyek N
    ```
 2. **Dapatkan sertifikat SSL**
    ```bash
-   sudo certbot --nginx -d contoh-domain.com -d www.contoh-domain.com
+   sudo certbot --nginx -d clev.io -d www.clev.io
    ```
 3. **Tes pembaruan otomatis**
    ```bash
@@ -227,4 +227,3 @@ Dokumen ini menjelaskan langkah demi langkah untuk melakukan deployment proyek N
 ---
 
 Selamat! Aplikasi Next.js Anda kini siap melayani pengguna dari VPS. Gunakan panduan ini sebagai referensi utama setiap kali melakukan deployment baru atau pemeliharaan rutin. Semoga sukses!
-

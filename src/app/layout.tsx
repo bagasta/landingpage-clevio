@@ -19,6 +19,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Clevio",
   description: "Empowering People to Innovate",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
   keywords: ["Clev.io", "Clevio Coder Camp", "Clevio Innovator", "Clevio Innovaotor Camp", "Kursus Coding", "Clevio Innovator Pro", "Clevio AI Employees"],
   authors: [{ name: "Z.ai Team" }],
   openGraph: {
