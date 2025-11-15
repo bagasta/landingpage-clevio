@@ -43,7 +43,7 @@ function getProgramLabel(program: AdminProgram['program']) {
     case 'INNOVATOR_PRO':
       return 'Innovator Pro'
     case 'AI_ASSISTANTS':
-      return 'Clevio AI Assistants'
+      return 'Clevio AI Staff'
     default:
       return program
   }

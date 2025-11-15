@@ -63,8 +63,8 @@ async function seedPrograms() {
     },
     {
       program: ProgramKey.INNOVATOR_PRO,
-      titleId: 'Innovator Pro',
-      titleEn: 'Innovator Pro',
+      titleId: 'Clevio Innovator Pro',
+      titleEn: 'Clevio Innovator Pro',
       descriptionId:
         'Pendampingan profesional untuk merancang inovasi berkelanjutan dan mengoptimalkan kerja dengan AI.',
       descriptionEn:
@@ -76,16 +76,16 @@ async function seedPrograms() {
     },
     {
       program: ProgramKey.AI_ASSISTANTS,
-      titleId: 'Clevio AI Assistants',
-      titleEn: 'Clevio AI Assistants',
+      titleId: 'Clevio AI Staff',
+      titleEn: 'Clevio AI Staff',
       descriptionId:
         'Platform asisten AI yang berpihak pada manusia untuk mempercepat produktivitas tanpa kehilangan empati.',
       descriptionEn:
         'A human-first AI assistant platform that accelerates productivity without losing empathy.',
-      ctaLabelId: 'Pelajari AI Assistants',
-      ctaLabelEn: 'Explore AI Assistants',
-      imageAltId: 'Logo Clevio AI Assistants',
-      imageAltEn: 'Clevio AI Assistants Logo',
+      ctaLabelId: 'Pelajari AI Staff',
+      ctaLabelEn: 'Explore AI Staff',
+      imageAltId: 'Logo Clevio AI Staff',
+      imageAltEn: 'Clevio AI Staff Logo',
     },
   ]
 

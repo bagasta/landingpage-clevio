@@ -63,8 +63,8 @@ const defaultProgramCards: ProgramCard[] = [
     href: '/innovator-pro',
     buttonGradient: 'from-[#1c2974] to-[#1c2974] hover:from-black hover:to-black',
     title: {
-      id: 'Innovator Pro',
-      en: 'Innovator Pro',
+      id: 'Clevio Innovator Pro',
+      en: 'Clevio Innovator Pro',
     },
     description: {
       id: 'Pendampingan profesional untuk merancang inovasi berkelanjutan dan mengoptimalkan kerja dengan AI.',
@@ -81,24 +81,24 @@ const defaultProgramCards: ProgramCard[] = [
   },
   {
     program: 'AI_ASSISTANTS',
-    logo: '/logo-ai-assistants.png',
-    href: '/ai-assistants',
+    logo: '/logo-ai-staff.png',
+    href: 'https://clevio-agent-pro.vercel.app/',
     buttonGradient: 'from-[#1c2974] to-[#1c2974] hover:from-black hover:to-black',
     title: {
-      id: 'Clevio AI Assistants',
-      en: 'Clevio AI Assistants',
+      id: 'Clevio AI Staff',
+      en: 'Clevio AI Staff',
     },
     description: {
       id: 'Platform asisten AI yang berpihak pada manusia untuk mempercepat produktivitas tanpa kehilangan empati.',
       en: 'A human-first AI assistant platform that accelerates productivity without losing empathy.',
     },
     alt: {
-      id: 'Logo Clevio AI Assistants',
-      en: 'Clevio AI Assistants Logo',
+      id: 'Logo Clevio AI Staff',
+      en: 'Clevio AI Staff Logo',
     },
     ctaLabel: {
-      id: 'Pelajari AI Assistants',
-      en: 'Explore AI Assistants',
+      id: 'Pelajari AI Staff',
+      en: 'Explore AI Staff',
     },
   },
 ];

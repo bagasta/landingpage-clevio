@@ -11,7 +11,7 @@ import { aiAssistantsContent } from '@/content/ai-assistants'
 const programLabels: Record<ProgramKey, string> = {
   INNOVATOR_CAMP: 'Innovator Camp',
   INNOVATOR_PRO: 'Innovator Pro',
-  AI_ASSISTANTS: 'Clevio AI Assistants',
+  AI_ASSISTANTS: 'Clevio AI Staff',
 }
 
 type AdminProgramPage = {
@@ -949,7 +949,7 @@ function AiAssistantsPageEditor({ page }: { page: AdminProgramPage }) {
           throw new Error(error.message ?? 'Gagal memperbarui halaman program.')
         }
         setStatus('success')
-        setMessage('Konten AI Assistants berhasil diperbarui.')
+        setMessage('Konten AI Staff berhasil diperbarui.')
         reset(values)
       } catch (error) {
         setStatus('error')
