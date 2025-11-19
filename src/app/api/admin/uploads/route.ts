@@ -25,11 +25,13 @@ export async function POST(request: Request) {
     const formData = await request.formData()
     const file = formData.get('file')
 
-    if (!(file instanceof File)) {
+    if (!file || typeof (file as Blob).arrayBuffer !== 'function') {
       return NextResponse.json({ message: 'File tidak ditemukan' }, { status: 400 })
     }
 
-    const bytes = await file.arrayBuffer()
+    const blob = file as Blob
+
+    const bytes = await blob.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
     const widthParam = formData.get('width')
