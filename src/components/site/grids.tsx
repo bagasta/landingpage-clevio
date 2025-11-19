@@ -5,6 +5,8 @@ import { LocalizedString, useLocale, t } from "./localization";
 import * as Icons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+const isLocalAsset = (src?: string) => Boolean(src?.startsWith("/"));
+
 type IconName = string;
 
 function resolveIcon(name: IconName): LucideIcon {
@@ -79,6 +81,7 @@ export function ImageTileGrid({
                 height={400}
                 className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                 loading={idx === 0 ? "eager" : "lazy"}
+                unoptimized={isLocalAsset(item.image.src)}
               />
               <figcaption className="absolute inset-0 flex items-end bg-gradient-to-t from-slate-900/80 via-slate-900/10 to-transparent p-6 text-lg font-semibold text-white">
                 {t(item.title, locale)}
@@ -132,6 +135,7 @@ export function StepStrip({
                   height={256}
                   className="h-32 w-32 rounded-2xl object-cover"
                   loading={index === 0 ? "eager" : "lazy"}
+                  unoptimized={isLocalAsset(step.image.src)}
                 />
                 <span className="absolute -top-3 -left-3 flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white shadow-lg">
                   {index + 1}
@@ -183,6 +187,7 @@ export function BeforeAfterGrid({
                     height={512}
                     className="h-full w-full object-cover"
                     loading={idx === 0 ? "eager" : "lazy"}
+                    unoptimized={isLocalAsset(item.beforeImage.src)}
                   />
                   <figcaption className="absolute bottom-2 left-2 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
                     {locale === "en" ? "Before" : "Sebelum"}
@@ -196,6 +201,7 @@ export function BeforeAfterGrid({
                     height={512}
                     className="h-full w-full object-cover"
                     loading="lazy"
+                    unoptimized={isLocalAsset(item.afterImage.src)}
                   />
                   <figcaption className="absolute bottom-2 left-2 rounded-full bg-slate-900/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
                     {locale === "en" ? "After" : "Sesudah"}

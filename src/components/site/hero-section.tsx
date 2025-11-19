@@ -42,6 +42,7 @@ export function HeroSection({
   image,
 }: HeroSectionProps) {
   const { locale } = useLocale();
+  const isLocalUpload = image?.src?.startsWith("/");
 
   return (
     <section id="hero" className={`relative overflow-hidden bg-gradient-to-br ${toneClasses[backgroundTone]} py-16`}>
@@ -59,6 +60,7 @@ export function HeroSection({
                 width={1280}
                 height={720}
                 className="h-full w-full object-cover"
+                unoptimized={Boolean(isLocalUpload)}
                 priority
               />
               {eyebrow ? (

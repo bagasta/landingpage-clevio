@@ -40,6 +40,7 @@ export function GallerySlider({ id, title, slides }: { id: string; title: Locali
                   width={1280}
                   height={720}
                   className="h-full w-full object-cover"
+                  unoptimized={slide.src.startsWith("/")}
                   priority={idx === 0}
                 />
               </figure>

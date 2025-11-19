@@ -16,6 +16,8 @@ export function TestimonialSlider({ id, title, items }: { id: string; title: Loc
   const { locale } = useLocale();
   const [index, setIndex] = useState(0);
   const current = items[index];
+  const avatarSrc = current.avatar ?? "https://placehold.co/128x128?text=C";
+  const avatarIsLocal = avatarSrc.startsWith("/");
   const backgroundSrc = useMemo(
     () => `https://placehold.co/1024x400?text=Story+${index + 1}`,
     [index],
@@ -38,11 +40,12 @@ export function TestimonialSlider({ id, title, items }: { id: string; title: Loc
           <div className="relative z-10 flex flex-col gap-6 p-8 text-white md:flex-row md:items-center md:gap-10">
             <div className="flex items-center gap-4 md:flex-col md:items-start">
               <Image
-                src={current.avatar ?? "https://placehold.co/128x128?text=C"}
+                src={avatarSrc}
                 alt={`${current.name}`}
                 width={96}
                 height={96}
                 className="h-20 w-20 rounded-full border-2 border-white/60 object-cover md:h-24 md:w-24"
+                unoptimized={avatarIsLocal}
               />
               <div className="text-left md:text-white">
                 <p className="text-base font-semibold">{current.name}</p>
