@@ -19,6 +19,11 @@ enum ProgramKey {
   AI_ASSISTANTS
 }
 
+enum ProgramPageStatus {
+  PUBLISHED
+  DEVELOPMENT
+}
+
 model Admin {
   id           String        @id @default(cuid())
   email        String        @unique
@@ -52,6 +57,7 @@ model ProgramPageContent {
   id          String     @id @default(cuid())
   program     ProgramKey @unique
   data        Json
+  status      ProgramPageStatus @default(PUBLISHED)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   updatedById String?

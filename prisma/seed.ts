@@ -1,4 +1,4 @@
-import { PrismaClient, ProgramKey } from '@prisma/client'
+import { PrismaClient, ProgramKey, ProgramPageStatus } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 import { campContent } from '../src/content/camp'
@@ -108,10 +108,11 @@ async function seedProgramPages() {
   for (const entry of entries) {
     await prisma.programPageContent.upsert({
       where: { program: entry.program },
-      update: { data: entry.data },
+      update: { data: entry.data, status: ProgramPageStatus.PUBLISHED },
       create: {
         program: entry.program,
         data: entry.data,
+        status: ProgramPageStatus.PUBLISHED,
       },
     })
   }

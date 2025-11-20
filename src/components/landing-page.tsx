@@ -5,6 +5,7 @@ import { Poppins } from 'next/font/google';
 
 type Language = 'id' | 'en';
 type ProgramKey = 'INNOVATOR_CAMP' | 'INNOVATOR_PRO' | 'AI_ASSISTANTS';
+type ProgramStatus = 'PUBLISHED' | 'DEVELOPMENT';
 
 type ProgramCopy = {
   program: ProgramKey;
@@ -27,6 +28,11 @@ type ProgramCard = {
   description: Record<Language, string>;
   alt: Record<Language, string>;
   ctaLabel: Record<Language, string>;
+};
+
+type ResolvedProgramCard = ProgramCard & {
+  status: ProgramStatus;
+  targetHref: string;
 };
 
 const poppins = Poppins({
@@ -155,9 +161,10 @@ function mergeProgramContent(programData: ProgramCopy[]): ProgramCard[] {
 
 export type LandingPageProps = {
   programContent: ProgramCopy[];
+  programStatuses?: Partial<Record<ProgramKey, ProgramStatus>>;
 };
 
-export function LandingPage({ programContent }: LandingPageProps) {
+export function LandingPage({ programContent, programStatuses }: LandingPageProps) {
   const [language, setLanguage] = useState<Language>('id');
   const [activeCard, setActiveCard] = useState<number>(0);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -165,6 +172,18 @@ export function LandingPage({ programContent }: LandingPageProps) {
   const programCards = useMemo(
     () => mergeProgramContent(programContent),
     [programContent],
+  );
+  const cardsWithStatus = useMemo<ResolvedProgramCard[]>(
+    () =>
+      programCards.map((card) => {
+        const status = programStatuses?.[card.program] ?? 'PUBLISHED';
+        const targetHref =
+          status === 'DEVELOPMENT'
+            ? `/under-construction?program=${encodeURIComponent(card.program)}`
+            : card.href;
+        return { ...card, status, targetHref };
+      }),
+    [programCards, programStatuses],
   );
 
   const getProgramSectionId = (program: ProgramKey) => `program-${program.toLowerCase()}`;
@@ -314,9 +333,9 @@ export function LandingPage({ programContent }: LandingPageProps) {
         </div>
 
         <div id="learn-more" className="mt-16 grid w-full max-w-5xl gap-8 md:grid-cols-3">
-          {programCards.map((card, index) => (
+          {cardsWithStatus.map((card, index) => (
             <div
-              key={card.href}
+              key={card.program}
               id={getProgramSectionId(card.program)}
               className="card-panel group relative z-10 flex h-full flex-col rounded-[28px] border border-black/5 bg-white/80 p-8 text-center shadow-[0_25px_60px_-45px_rgba(28,41,116,0.55)] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-2 hover:border-[#1c2974]/20 hover:shadow-[0_35px_85px_-40px_rgba(28,41,116,0.6)] md:p-10"
             >
@@ -334,8 +353,13 @@ export function LandingPage({ programContent }: LandingPageProps) {
               <p className={`${poppins.className} flex-1 text-sm leading-relaxed text-black/70 sm:text-base`}>
                 {card.description[language]}
               </p>
+              {card.status === 'DEVELOPMENT' ? (
+                <span className="mt-4 inline-flex items-center justify-center rounded-full bg-amber-100 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-amber-800">
+                  {language === 'id' ? 'Halaman Sedang Diperbaiki' : 'Under Development'}
+                </span>
+              ) : null}
               <a
-                href={card.href}
+                href={card.targetHref}
                 className={`${poppins.className} mt-8 inline-flex items-center justify-center rounded-full bg-gradient-to-r px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_-12px_rgba(28,41,116,0.55)] transition duration-200 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 active:scale-95 ${card.buttonGradient}`}
               >
                 {card.ctaLabel[language]}
@@ -395,7 +419,7 @@ export function LandingPage({ programContent }: LandingPageProps) {
               </p>
 
               <div className="mt-8 flex items-center justify-center gap-4">
-                {programCards.map((card, index) => (
+                {cardsWithStatus.map((card, index) => (
                   <button
                     key={`${card.program}-mobile`}
                     type="button"
@@ -423,7 +447,7 @@ export function LandingPage({ programContent }: LandingPageProps) {
                         activeCard === index ? 'text-[#1c2974]' : 'text-black/50'
                       }`}
                     >
-                      {index === 0 ? '' : index === 1 ? '' : ''}
+                      {card.title[language]}
                     </span>
                   </button>
                 ))}
@@ -433,9 +457,9 @@ export function LandingPage({ programContent }: LandingPageProps) {
         </div>
 
         <div className="flex-1 space-y-6 pb-8">
-          {programCards.map((card, index) => (
+          {cardsWithStatus.map((card, index) => (
             <div
-              key={card.href}
+              key={card.program}
               id={getProgramSectionId(card.program)}
               ref={(el) => {
                 cardRefs.current[index] = el;
@@ -460,8 +484,13 @@ export function LandingPage({ programContent }: LandingPageProps) {
               <p className={`${poppins.className} mt-2 flex-1 text-sm leading-relaxed text-black/70`}>
                 {card.description[language]}
               </p>
+              {card.status === 'DEVELOPMENT' ? (
+                <span className="mt-4 inline-flex items-center justify-center rounded-full bg-amber-100 px-4 py-1 text-[10px] font-semibold uppercase tracking-widest text-amber-800">
+                  {language === 'id' ? 'Dalam Pengembangan' : 'Under Development'}
+                </span>
+              ) : null}
               <a
-                href={card.href}
+                href={card.targetHref}
                 className={`${poppins.className} mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r px-6 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_-12px_rgba(28,41,116,0.55)] transition duration-200 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black/40 active:scale-95 ${card.buttonGradient}`}
               >
                 {card.ctaLabel[language]}

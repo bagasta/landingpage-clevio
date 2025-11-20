@@ -2,16 +2,30 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { z } from 'zod'
 
-import { ProgramKey } from '@prisma/client'
+import { ProgramKey, ProgramPageStatus } from '@prisma/client'
 
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { campContent } from '@/content/camp'
+import { innovatorProContent } from '@/content/innovator-pro'
+import { aiAssistantsContent } from '@/content/ai-assistants'
 
-const bodySchema = z.object({
-  data: z.any(),
-})
+const bodySchema = z
+  .object({
+    data: z.any().optional(),
+    status: z.nativeEnum(ProgramPageStatus).optional(),
+  })
+  .refine((value) => value.data !== undefined || value.status !== undefined, {
+    message: 'Tidak ada perubahan yang dikirim.',
+  })
 
 const allowedPrograms: ProgramKey[] = ['INNOVATOR_CAMP', 'INNOVATOR_PRO', 'AI_ASSISTANTS']
+
+const fallbackContent: Record<ProgramKey, unknown> = {
+  INNOVATOR_CAMP: campContent,
+  INNOVATOR_PRO: innovatorProContent,
+  AI_ASSISTANTS: aiAssistantsContent,
+}
 
 export async function PATCH(
   request: Request,
@@ -35,20 +49,27 @@ export async function PATCH(
 
   if (!parsed.success) {
     return NextResponse.json(
-      { message: 'Data tidak valid.' },
+      { message: parsed.error.errors[0]?.message ?? 'Data tidak valid.' },
       { status: 400 }
     )
   }
 
+  const payload = parsed.data
+  const updateData: Record<string, unknown> = { updatedById: session.user.id }
+  if (payload.data !== undefined) {
+    updateData.data = payload.data
+  }
+  if (payload.status !== undefined) {
+    updateData.status = payload.status
+  }
+
   await db.programPageContent.upsert({
     where: { program: programKey as ProgramKey },
-    update: {
-      data: parsed.data.data,
-      updatedById: session.user.id,
-    },
+    update: updateData,
     create: {
       program: programKey as ProgramKey,
-      data: parsed.data.data,
+      data: payload.data ?? fallbackContent[programKey as ProgramKey],
+      status: payload.status ?? ProgramPageStatus.PUBLISHED,
       updatedById: session.user.id,
     },
   })

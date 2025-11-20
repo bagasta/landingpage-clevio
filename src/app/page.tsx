@@ -1,4 +1,4 @@
-import { ProgramKey } from '@prisma/client';
+import { ProgramKey, ProgramPageStatus } from '@prisma/client';
 
 import LandingPage from '@/components/landing-page';
 import { db } from '@/lib/db';
@@ -36,5 +36,15 @@ async function getProgramContent(): Promise<ProgramRecord[]> {
 
 export default async function Home() {
   const programContent = await getProgramContent();
-  return <LandingPage programContent={programContent} />;
+  const programStatuses = await db.programPageContent.findMany({
+    select: { program: true, status: true },
+  });
+  const statusMap = programStatuses.reduce(
+    (map, entry) => {
+      map[entry.program] = entry.status;
+      return map;
+    },
+    {} as Partial<Record<ProgramKey, ProgramPageStatus>>
+  );
+  return <LandingPage programContent={programContent} programStatuses={statusMap} />;
 }

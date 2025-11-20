@@ -2,11 +2,20 @@
 
 import { ChangeEvent, useMemo, useState, useTransition } from 'react'
 import { Control, UseFormRegister, useController, useFieldArray, useForm } from 'react-hook-form'
-import { ProgramKey } from '@prisma/client'
+import { ProgramKey, ProgramPageStatus } from '@prisma/client'
 
 import { campContent } from '@/content/camp'
 import { innovatorProContent } from '@/content/innovator-pro'
 import { aiAssistantsContent } from '@/content/ai-assistants'
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 const programLabels: Record<ProgramKey, string> = {
   INNOVATOR_CAMP: 'Innovator Camp',
@@ -17,6 +26,7 @@ const programLabels: Record<ProgramKey, string> = {
 type AdminProgramPage = {
   program: ProgramKey
   data: unknown
+  status: ProgramPageStatus
   updatedAt: string
   updatedBy?: {
     name: string | null
@@ -88,6 +98,57 @@ export function ProgramPageEditor({ pages }: { pages: AdminProgramPage[] }) {
       })}
     </div>
   )
+}
+
+function useProgramPublishState(page: AdminProgramPage) {
+  const [publishState, setPublishState] = useState<ProgramPageStatus>(page.status)
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false)
+  const [statusError, setStatusError] = useState<string | null>(null)
+  const [isStatusUpdating, setStatusUpdating] = useState(false)
+
+  const handleDialogChange = (open: boolean) => {
+    if (!open) {
+      setStatusError(null)
+    }
+    setStatusDialogOpen(open)
+  }
+
+  const updateStatus = async (nextState: ProgramPageStatus) => {
+    if (isStatusUpdating) return
+    if (nextState === publishState) {
+      handleDialogChange(false)
+      return
+    }
+    setStatusError(null)
+    setStatusUpdating(true)
+    try {
+      const response = await fetch(`/api/admin/program-pages/${page.program}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextState }),
+      })
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Gagal mengubah status.' }))
+        throw new Error(error.message ?? 'Gagal memperbarui status halaman.')
+      }
+      setPublishState(nextState)
+      handleDialogChange(false)
+    } catch (error) {
+      setStatusError(error instanceof Error ? error.message : 'Terjadi kesalahan tak terduga.')
+    } finally {
+      setStatusUpdating(false)
+    }
+  }
+
+  return {
+    publishState,
+    statusDialogOpen,
+    onDialogChange: handleDialogChange,
+    openDialog: () => handleDialogChange(true),
+    isStatusUpdating,
+    statusError,
+    updateStatus,
+  }
 }
 
 function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
@@ -329,6 +390,15 @@ function CampPageEditor({ page }: { page: AdminProgramPage }) {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const {
+    publishState,
+    statusDialogOpen,
+    onDialogChange,
+    openDialog,
+    isStatusUpdating,
+    statusError,
+    updateStatus,
+  } = useProgramPublishState(page)
 
   const onSubmit = (values: CampFormValues) => {
     setStatus('idle')
@@ -348,6 +418,7 @@ function CampPageEditor({ page }: { page: AdminProgramPage }) {
         setStatus('success')
         setMessage('Konten Innovator Camp berhasil diperbarui.')
         reset(values)
+        openDialog()
       } catch (error) {
         setStatus('error')
         setMessage(error instanceof Error ? error.message : 'Terjadi kesalahan tak terduga.')
@@ -357,7 +428,7 @@ function CampPageEditor({ page }: { page: AdminProgramPage }) {
 
   return (
     <section className="rounded-3xl border border-black/5 bg-white/85 p-8 shadow-lg backdrop-blur">
-      <HeaderSummary page={page} />
+      <HeaderSummary page={page} status={publishState} onOpenStatusDialog={openDialog} />
       <form className="mt-6 space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <Section title="Hero">
           <LocalizedField label="Judul" register={register} idName="hero.title.id" enName="hero.title.en" />
@@ -604,6 +675,14 @@ function CampPageEditor({ page }: { page: AdminProgramPage }) {
           }}
         />
       </form>
+      <PublishStatusDialog
+        open={statusDialogOpen}
+        onOpenChange={onDialogChange}
+        current={publishState}
+        loading={isStatusUpdating}
+        error={statusError}
+        onSelect={updateStatus}
+      />
     </section>
   )
 }
@@ -622,6 +701,15 @@ function InnovatorProPageEditor({ page }: { page: AdminProgramPage }) {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const {
+    publishState,
+    statusDialogOpen,
+    onDialogChange,
+    openDialog,
+    isStatusUpdating,
+    statusError,
+    updateStatus,
+  } = useProgramPublishState(page)
 
   const onSubmit = (values: InnovatorProFormValues) => {
     setStatus('idle')
@@ -641,6 +729,7 @@ function InnovatorProPageEditor({ page }: { page: AdminProgramPage }) {
         setStatus('success')
         setMessage('Konten Innovator Pro berhasil diperbarui.')
         reset(values)
+        openDialog()
       } catch (error) {
         setStatus('error')
         setMessage(error instanceof Error ? error.message : 'Terjadi kesalahan tak terduga.')
@@ -650,7 +739,7 @@ function InnovatorProPageEditor({ page }: { page: AdminProgramPage }) {
 
   return (
     <section className="rounded-3xl border border-black/5 bg-white/85 p-8 shadow-lg backdrop-blur">
-      <HeaderSummary page={page} />
+      <HeaderSummary page={page} status={publishState} onOpenStatusDialog={openDialog} />
       <form className="mt-6 space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <Section title="Hero">
           <LocalizedField label="Judul" register={register} idName="hero.title.id" enName="hero.title.en" />
@@ -914,6 +1003,14 @@ function InnovatorProPageEditor({ page }: { page: AdminProgramPage }) {
           }}
         />
       </form>
+      <PublishStatusDialog
+        open={statusDialogOpen}
+        onOpenChange={onDialogChange}
+        current={publishState}
+        loading={isStatusUpdating}
+        error={statusError}
+        onSelect={updateStatus}
+      />
     </section>
   )
 }
@@ -932,6 +1029,15 @@ function AiAssistantsPageEditor({ page }: { page: AdminProgramPage }) {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const {
+    publishState,
+    statusDialogOpen,
+    onDialogChange,
+    openDialog,
+    isStatusUpdating,
+    statusError,
+    updateStatus,
+  } = useProgramPublishState(page)
 
   const onSubmit = (values: AiAssistantsFormValues) => {
     setStatus('idle')
@@ -951,6 +1057,7 @@ function AiAssistantsPageEditor({ page }: { page: AdminProgramPage }) {
         setStatus('success')
         setMessage('Konten AI Staff berhasil diperbarui.')
         reset(values)
+        openDialog()
       } catch (error) {
         setStatus('error')
         setMessage(error instanceof Error ? error.message : 'Terjadi kesalahan tak terduga.')
@@ -960,7 +1067,7 @@ function AiAssistantsPageEditor({ page }: { page: AdminProgramPage }) {
 
   return (
     <section className="rounded-3xl border border-black/5 bg-white/85 p-8 shadow-lg backdrop-blur">
-      <HeaderSummary page={page} />
+      <HeaderSummary page={page} status={publishState} onOpenStatusDialog={openDialog} />
       <form className="mt-6 space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <Section title="Hero">
           <LocalizedField label="Judul" register={register} idName="hero.title.id" enName="hero.title.en" />
@@ -1194,6 +1301,14 @@ function AiAssistantsPageEditor({ page }: { page: AdminProgramPage }) {
           }}
         />
       </form>
+      <PublishStatusDialog
+        open={statusDialogOpen}
+        onOpenChange={onDialogChange}
+        current={publishState}
+        loading={isStatusUpdating}
+        error={statusError}
+        onSelect={updateStatus}
+      />
     </section>
   )
 }
@@ -1250,7 +1365,82 @@ function ArraySectionWithImage({
   )
 }
 
-function HeaderSummary({ page }: { page: AdminProgramPage }) {
+function PublishStatusDialog({
+  open,
+  onOpenChange,
+  current,
+  loading,
+  error,
+  onSelect,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  current: ProgramPageStatus
+  loading: boolean
+  error: string | null
+  onSelect: (state: ProgramPageStatus) => void
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Atur Status Publikasi Halaman</AlertDialogTitle>
+          <AlertDialogDescription>
+            Tentukan apakah halaman ini siap dipublikasikan atau masih dialihkan ke halaman under construction.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        {error ? (
+          <p className="rounded-2xl bg-red-50 px-4 py-2 text-xs font-semibold text-red-600">{error}</p>
+        ) : null}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => onSelect('DEVELOPMENT')}
+            className={`rounded-2xl border px-4 py-3 text-left transition ${
+              current === 'DEVELOPMENT'
+                ? 'border-amber-400 bg-amber-50 text-amber-800 shadow-sm'
+                : 'border-black/10 bg-white hover:border-amber-300 hover:bg-amber-50/60'
+            }`}
+          >
+            <span className="block text-sm font-semibold uppercase tracking-widest">Development</span>
+            <span className="mt-1 block text-xs text-black/60">
+              Semua tombol landing dialihkan ke halaman Under Construction.
+            </span>
+          </button>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => onSelect('PUBLISHED')}
+            className={`rounded-2xl border px-4 py-3 text-left transition ${
+              current === 'PUBLISHED'
+                ? 'border-emerald-400 bg-emerald-50 text-emerald-800 shadow-sm'
+                : 'border-black/10 bg-white hover:border-emerald-300 hover:bg-emerald-50/70'
+            }`}
+          >
+            <span className="block text-sm font-semibold uppercase tracking-widest">Publish</span>
+            <span className="mt-1 block text-xs text-black/60">
+              Pengunjung diarahkan langsung ke halaman program yang baru Anda simpan.
+            </span>
+          </button>
+        </div>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={loading}>Tutup</AlertDialogCancel>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
+function HeaderSummary({
+  page,
+  status,
+  onOpenStatusDialog,
+}: {
+  page: AdminProgramPage
+  status: ProgramPageStatus
+  onOpenStatusDialog: () => void
+}) {
   return (
     <header className="flex flex-col gap-4 border-b border-black/5 pb-6 md:flex-row md:items-center md:justify-between">
       <div>
@@ -1259,11 +1449,29 @@ function HeaderSummary({ page }: { page: AdminProgramPage }) {
           Terakhir diperbarui {new Date(page.updatedAt).toLocaleString('id-ID')}
         </p>
       </div>
-      {page.updatedBy?.name ? (
-        <span className="rounded-full bg-[#1c2974]/10 px-4 py-1 text-xs font-medium text-[#1c2974]">
-          oleh {page.updatedBy.name}
+      <div className="flex flex-wrap items-center gap-3">
+        <span
+          className={`rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-widest ${
+            status === 'PUBLISHED'
+              ? 'bg-emerald-100 text-emerald-700'
+              : 'bg-amber-100 text-amber-800'
+          }`}
+        >
+          {status === 'PUBLISHED' ? 'Publish' : 'Development'}
         </span>
-      ) : null}
+        <button
+          type="button"
+          onClick={onOpenStatusDialog}
+          className="rounded-full border border-black/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-[#1c2974] transition hover:border-[#1c2974]/40 hover:bg-[#1c2974]/10"
+        >
+          Atur Status
+        </button>
+        {page.updatedBy?.name ? (
+          <span className="rounded-full bg-[#1c2974]/10 px-4 py-1 text-xs font-medium text-[#1c2974]">
+            oleh {page.updatedBy.name}
+          </span>
+        ) : null}
+      </div>
     </header>
   )
 }

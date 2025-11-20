@@ -64,6 +64,7 @@ export default async function AdminDashboardPage() {
           programPages={programPages.map((page) => ({
             program: page.program,
             data: page.data,
+            status: page.status,
             updatedAt: page.updatedAt.toISOString(),
             updatedBy: page.updatedBy,
           }))}

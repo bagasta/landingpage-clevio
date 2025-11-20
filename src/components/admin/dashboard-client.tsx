@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { ProgramKey } from '@prisma/client'
+import { ProgramKey, ProgramPageStatus } from '@prisma/client'
 
 import { LandingProgramEditor } from '@/components/admin/landing-program-editor'
 import { ProgramPageEditor } from '@/components/admin/program-page-editor'
@@ -42,6 +42,7 @@ type LandingProgram = {
 type ProgramPage = {
   program: ProgramKey
   data: unknown
+  status: ProgramPageStatus
   updatedAt: string
   updatedBy?: {
     name: string | null
