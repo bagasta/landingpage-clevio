@@ -22,6 +22,7 @@ import { innovatorProContent } from '@/content/innovator-pro';
 
 export default function InnovatorProPage() {
   const [content, setContent] = useState<typeof innovatorProContent>(innovatorProContent);
+  const stickyTarget = content.contact?.cta ?? stickyCta;
 
   useEffect(() => {
     let active = true;
@@ -91,7 +92,7 @@ export default function InnovatorProPage() {
         <ContactSection {...content.contact} />
       </main>
       <FloatingChatButton webhookUrl={chatConfig.webhookUrl} intro={chatConfig.intro} />
-      <StickyCtaBar label={stickyCta.label} href={stickyCta.href} />
+      <StickyCtaBar label={stickyTarget.label} href={stickyTarget.href} />
     </LanguageProvider>
   );
 }

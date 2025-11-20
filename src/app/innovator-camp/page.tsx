@@ -21,6 +21,7 @@ import { campContent } from '@/content/camp';
 
 export default function InnovatorCampPage() {
   const [content, setContent] = useState<typeof campContent>(campContent);
+  const stickyTarget = content.contact?.cta ?? stickyCta;
 
   useEffect(() => {
     let active = true;
@@ -85,7 +86,7 @@ export default function InnovatorCampPage() {
         <ContactSection {...content.contact} />
       </main>
       <FloatingChatButton webhookUrl={chatConfig.webhookUrl} intro={chatConfig.intro} />
-      <StickyCtaBar label={stickyCta.label} href={stickyCta.href} />
+      <StickyCtaBar label={stickyTarget.label} href={stickyTarget.href} />
     </LanguageProvider>
   );
 }

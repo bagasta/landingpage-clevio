@@ -22,6 +22,7 @@ import { aiAssistantsContent } from '@/content/ai-assistants';
 
 export default function AIAssistantsPage() {
   const [content, setContent] = useState<typeof aiAssistantsContent>(aiAssistantsContent);
+  const stickyTarget = content.contact?.cta ?? stickyCta;
 
   useEffect(() => {
     let active = true;
@@ -92,7 +93,7 @@ export default function AIAssistantsPage() {
         <ContactSection {...content.contact} />
       </main>
       <FloatingChatButton webhookUrl={chatConfig.webhookUrl} intro={chatConfig.intro} />
-      <StickyCtaBar label={stickyCta.label} href={stickyCta.href} />
+      <StickyCtaBar label={stickyTarget.label} href={stickyTarget.href} />
     </LanguageProvider>
   );
 }
