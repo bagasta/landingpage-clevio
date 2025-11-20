@@ -10,10 +10,12 @@ import { campContent } from '@/content/camp'
 import { innovatorProContent } from '@/content/innovator-pro'
 import { aiAssistantsContent } from '@/content/ai-assistants'
 
+const programStatusValues = ['PUBLISHED', 'DEVELOPMENT'] as const
+
 const bodySchema = z
   .object({
     data: z.any().optional(),
-    status: z.nativeEnum(ProgramPageStatus).optional(),
+    status: z.enum(programStatusValues).optional(),
   })
   .refine((value) => value.data !== undefined || value.status !== undefined, {
     message: 'Tidak ada perubahan yang dikirim.',
@@ -60,7 +62,7 @@ export async function PATCH(
     updateData.data = payload.data
   }
   if (payload.status !== undefined) {
-    updateData.status = payload.status
+    updateData.status = payload.status as ProgramPageStatus
   }
 
   await db.programPageContent.upsert({
@@ -69,7 +71,7 @@ export async function PATCH(
     create: {
       program: programKey as ProgramKey,
       data: payload.data ?? fallbackContent[programKey as ProgramKey],
-      status: payload.status ?? ProgramPageStatus.PUBLISHED,
+      status: (payload.status as ProgramPageStatus | undefined) ?? ProgramPageStatus.PUBLISHED,
       updatedById: session.user.id,
     },
   })
