@@ -1,5 +1,8 @@
 import { ProgramKey, ProgramPageStatus } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import LandingPage from '@/components/landing-page';
 import { db } from '@/lib/db';
 
