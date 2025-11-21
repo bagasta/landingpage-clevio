@@ -355,7 +355,7 @@ export function LandingPage({ programContent, programStatuses }: LandingPageProp
               </p>
               {card.status === 'DEVELOPMENT' ? (
                 <span className="mt-4 inline-flex items-center justify-center rounded-full bg-amber-100 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-amber-800">
-                  {language === 'id' ? 'Halaman Sedang Diperbaiki' : 'Under Development'}
+                  {language === 'id' ? 'Halaman Sedang Di-Upgrade' : 'Under Development'}
                 </span>
               ) : null}
               <a
